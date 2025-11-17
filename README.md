@@ -1,5 +1,5 @@
 # prservice-task
-Test task for internship(Pull Request service)
+Test task for internship(PR Reviewer Assignment Service)
 
 
 ├── cmd
