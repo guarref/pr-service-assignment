@@ -13,11 +13,11 @@ const (
 )
 
 type PullRequest struct {
-	PullRequestID   string            `json:"pull_request_id" db:"pull_request_id"`
-	PullRequestName string            `json:"pull_request_name" db:"pull_request_name"`
-	AuthorID        string            `json:"author_id" db:"author_id"`
-	Status          PullRequestStatus `json:"status" db:"status"`
-	AssignedReviewers []string `json:"assigned_reviewers" db:"-"`
+	PullRequestID     string            `json:"pull_request_id" db:"pull_request_id"`
+	PullRequestName   string            `json:"pull_request_name" db:"pull_request_name"`
+	AuthorID          string            `json:"author_id" db:"author_id"`
+	Status            PullRequestStatus `json:"status" db:"status"`
+	AssignedReviewers []string          `json:"assigned_reviewers" db:"-"`
 
 	CreatedAt *time.Time    `json:"createdAt,omitempty" db:"created_at"`
 	MergedAt  *sql.NullTime `json:"mergedAt,omitempty" db:"merged_at"`

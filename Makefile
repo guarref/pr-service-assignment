@@ -1,7 +1,7 @@
 # Makefile
 
 # переменные
-DB_DSN := "postgres://postgres:PostgresPass@localhost:5432/postgres?sslmode=disable"
+DB_DSN := "postgres://postgres:PostgresPass@localhost:5432/prservice?sslmode=disable"
 MIGRATE := migrate -path ./migrations -database $(DB_DSN)
 
 .PHONY: help migrate-new migrate migrate-down migrate-force run build docker-up docker-down
