@@ -14,12 +14,12 @@ type TeamRepository interface {
 type UserRepository interface {
 	SetFlagIsActive(ctx context.Context, userID string, isActive bool) (*domain.User, error)
 	GetUserByID(ctx context.Context, userID string) (*domain.User, error)
-	GetActiveByTeam(ctx context.Context, teamName string, excludeUserID string) ([]*domain.User, error)
+	GetActiveUsersByTeam(ctx context.Context, teamName string, exceptUserID string) ([]*domain.User, error)
 }
 
 type PullRequestRepository interface {
 	CreatePullRequest(ctx context.Context, pr *domain.PullRequest) error
 	MergePullRequestByID(ctx context.Context, prID string) (*domain.PullRequest, error)
-	ReassignToPullRequest(ctx context.Context, prID string, userID string) (*domain.PullRequest, error)
-	GetPullRequestByReviewerID(ctx context.Context, userID string) ([]*domain.PullRequest, error)
+	ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*domain.PullRequest, string, error)
+	GetPullRequestByReviewerID(ctx context.Context, userID string) ([]*domain.PullRequestShort, error)
 }

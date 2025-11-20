@@ -1,1 +1,109 @@
+// internal/service/pull_request.go
 package service
+
+import (
+	"context"
+	"fmt"
+	"math/rand"
+	"time"
+
+	"github.com/guarref/pr-service-assignment/internal/domain"
+	"github.com/guarref/pr-service-assignment/internal/repository"
+	"github.com/guarref/pr-service-assignment/internal/resperrors"
+)
+
+type PullRequestService struct {
+	prRepo   repository.PullRequestRepository
+	userRepo repository.UserRepository
+}
+
+func NewPullRequestService(prRepo repository.PullRequestRepository, userRepo repository.UserRepository) *PullRequestService {
+	return &PullRequestService{prRepo: prRepo, userRepo: userRepo}
+}
+
+func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *domain.PullRequest) (*domain.PullRequest, error) {
+	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
+		return nil, resperrors.ErrBadRequest
+	}
+
+	author, err := prs.userRepo.GetUserByID(ctx, pr.AuthorID)
+	if err != nil {
+		// тут либо ErrUserNotFound, либо другая ошибка — обе оборачиваем
+		return nil, fmt.Errorf("error getting author with id %s: %w", pr.AuthorID, err)
+	}
+
+	// активные ревьюверы из команды автора, исключая самого автора
+	activeUsers, err := prs.userRepo.GetActiveUsersByTeam(ctx, author.TeamName, author.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting active users for team %s: %w", author.TeamName, err)
+	}
+
+	reviewers := randomUserSelection(activeUsers, 2)
+	pr.AssignedReviewers = reviewers
+	pr.Status = domain.PullRequestOpen
+
+	if err := prs.prRepo.CreatePullRequest(ctx, pr); err != nil {
+		return nil, fmt.Errorf("error creating pull request with id %s: %w", pr.PullRequestID, err)
+	}
+
+	return pr, nil
+}
+
+func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string) (*domain.PullRequest, error) {
+	if prID == "" {
+		return nil, resperrors.ErrBadRequest
+	}
+
+	pr, err := prs.prRepo.MergePullRequestByID(ctx, prID)
+	if err != nil {
+		return nil, fmt.Errorf("error merging pull request with id %s: %w", prID, err)
+	}
+
+	return pr, nil
+}
+
+func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*domain.PullRequest, string, error) {
+	if prID == "" || oldUserID == "" {
+		return nil, "", resperrors.ErrBadRequest
+	}
+
+	pr, newReviewerID, err := prs.prRepo.ReassignToPullRequest(ctx, prID, oldUserID)
+	if err != nil {
+		return nil, "", fmt.Errorf("error reassigning reviewer %s for pull request %s: %w", oldUserID, prID, err)
+	}
+
+	return pr, newReviewerID, nil
+}
+
+func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, userID string) ([]*domain.PullRequestShort, error) {
+	if userID == "" {
+		return nil, resperrors.ErrBadRequest
+	}
+
+	prsList, err := prs.prRepo.GetPullRequestByReviewerID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting pull requests for reviewer %s: %w", userID, err)
+	}
+
+	return prsList, nil
+}
+
+func randomUserSelection(activeUsers []*domain.User, num int) []string {
+	if len(activeUsers) == 0 {
+		return []string{}
+	}
+
+	count := min(len(activeUsers), num)
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r.Shuffle(len(activeUsers), func(i, j int) {
+		activeUsers[i], activeUsers[j] = activeUsers[j], activeUsers[i]
+	})
+
+	result := make([]string, count)
+	for i := 0; i < count; i++ {
+		result[i] = activeUsers[i].UserID
+	}
+
+	return result
+}

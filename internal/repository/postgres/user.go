@@ -54,7 +54,7 @@ func (ur *UserRepository) GetUserByID(ctx context.Context, userID string) (*doma
 	return &user, nil
 }
 
-func (ur *UserRepository) GetActiveByTeam(ctx context.Context, teamName string, excludeUserID string) ([]*domain.User, error) {
+func (ur *UserRepository) GetActiveUsersByTeam(ctx context.Context, teamName string, exceptUserID string) ([]*domain.User, error) {
 	
 	query := `SELECT user_id, username, team_name, is_active, created_at, updated_at
 		FROM users
@@ -62,7 +62,7 @@ func (ur *UserRepository) GetActiveByTeam(ctx context.Context, teamName string, 
 		ORDER BY user_id`
 
 	var users []*domain.User
-	if err := ur.db.SelectContext(ctx, &users, query, teamName, excludeUserID); err != nil {
+	if err := ur.db.SelectContext(ctx, &users, query, teamName, exceptUserID); err != nil {
 		return nil, fmt.Errorf("error getting active users: %w", err)
 	}
 
