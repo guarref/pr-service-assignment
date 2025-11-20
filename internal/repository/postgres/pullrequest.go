@@ -73,13 +73,13 @@ func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID
 	defer tx.Rollback()
 
 	updateQuery := `UPDATE pull_requests
-		SET status = $2,
+		SET status = $1,
 		    merged_at = COALESCE(merged_at, NOW())
-		WHERE pull_request_id = $1
+		WHERE pull_request_id = $2
 		RETURNING pull_request_id, pull_request_name, author_id, status, created_at, merged_at`
 
 	var pr domain.PullRequest
-	if err := tx.GetContext(ctx, &pr, updateQuery, prID, domain.Status); err != nil {
+	if err := tx.GetContext(ctx, &pr, updateQuery, domain.PullRequestMerged, prID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, resperrors.ErrPullRequestNotFound
 		}
@@ -124,7 +124,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 		return nil, fmt.Errorf("get pull request: %w", err)
 	}
 
-	if pr.Status == domain.StatusMerged {
+	if pr.Status == domain.PullRequestMerged {
 		return nil, resperrors.ErrPullRequestMerged
 	}
 
