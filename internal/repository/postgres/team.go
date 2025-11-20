@@ -21,6 +21,7 @@ func NewTeamRepository(db *sqlx.DB) *TeamRepository {
 // если есть команда, то TEAM_EXISTS, если нет, то создаем
 // если есть пользователь, то обновляем данные, если нет, то создаем
 func (tr *TeamRepository) CreateTeam(ctx context.Context, team *domain.Team) error {
+
 	tx, err := tr.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("begining transaction team: %w", err)
@@ -64,6 +65,7 @@ func (tr *TeamRepository) CreateTeam(ctx context.Context, team *domain.Team) err
 }
 
 func (tr *TeamRepository) GetTeamByName(ctx context.Context, teamName string) (*domain.Team, error) {
+
 	var team domain.Team
 
 	teamQuery := `SELECT team_name, created_at, updated_at

@@ -19,6 +19,7 @@ func NewPullRequestRepository(db *sqlx.DB) *PullRequestRepository {
 }
 
 func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *domain.PullRequest) error {
+
 	tx, err := prr.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("beginning transaction pull_request: %w", err)
@@ -66,6 +67,7 @@ func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *dom
 }
 
 func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID string) (*domain.PullRequest, error) {
+
 	tx, err := prr.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("beginning transaction merge_pull_request: %w", err)
@@ -105,6 +107,7 @@ func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID
 }
 
 func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*domain.PullRequest, error) {
+
 	tx, err := prr.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("beginning transaction reassign_pull_request: %w", err)
@@ -197,6 +200,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 }
 
 func (prr *PullRequestRepository) GetPullRequestByReviewerID(ctx context.Context, userID string) ([]*domain.PullRequest, error) {
+
 	query := `SELECT
 			pr.pull_request_id,
 			pr.pull_request_name,
