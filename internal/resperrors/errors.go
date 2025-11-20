@@ -31,13 +31,13 @@ var (
 		StatusCode: http.StatusConflict, 
 	}
 
-	ErrPRExists = &RespError{
+	ErrPullRequestExists = &RespError{
 		Code:       "PR_EXISTS",
 		Message:    "PR id already exists",
 		StatusCode: http.StatusConflict,
 	}
 
-	ErrPRMerged = &RespError{
+	ErrPullRequestMerged = &RespError{
 		Code:       "PR_MERGED",
 		Message:    "cannot reassign on merged PR",
 		StatusCode: http.StatusConflict,
@@ -74,7 +74,7 @@ var (
 		StatusCode: http.StatusNotFound,
 	}
 
-	ErrPRNotFound = &RespError{
+	ErrPullRequestNotFound = &RespError{
 		Code:       "NOT_FOUND",
 		Message:    "pull request not found",
 		StatusCode: http.StatusNotFound,

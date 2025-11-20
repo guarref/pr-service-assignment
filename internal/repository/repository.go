@@ -13,6 +13,8 @@ type TeamRepository interface {
 
 type UserRepository interface {
 	SetFlagIsActive(ctx context.Context, userID string, isActive bool) error
+	GetUserByID(ctx context.Context, userID string) (*domain.User, error)
+	GetActiveUsersByTeam(ctx context.Context, teamName string) ([]domain.User, error)
 }
 
 type PullRequestRepository interface {
