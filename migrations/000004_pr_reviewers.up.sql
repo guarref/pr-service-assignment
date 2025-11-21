@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS pr_reviewers (
     pull_request_id VARCHAR(100) NOT NULL,
-    user_id VARCHAR(100) NOT NULL,
+    user_id VARCHAR(120) NOT NULL,
     assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
     -- Составной первичный ключ (один юзер не может быть дважды на одном PR)
