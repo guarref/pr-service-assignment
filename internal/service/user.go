@@ -18,7 +18,7 @@ func NewUserService(userRepo repository.UserRepository) *UserService {
 }
 
 func (us *UserService) SetFlagIsActive(ctx context.Context, userID string, isActive bool) (*domain.User, error) {
-	
+
 	if userID == "" {
 		return nil, resperrors.ErrBadRequest
 	}
@@ -32,7 +32,7 @@ func (us *UserService) SetFlagIsActive(ctx context.Context, userID string, isAct
 }
 
 func (us *UserService) GetUserByID(ctx context.Context, userID string) (*domain.User, error) {
-	
+
 	if userID == "" {
 		return nil, resperrors.ErrBadRequest
 	}
@@ -46,7 +46,7 @@ func (us *UserService) GetUserByID(ctx context.Context, userID string) (*domain.
 }
 
 func (us *UserService) GetActiveUsersByTeam(ctx context.Context, teamName string, exceptUserID string) ([]*domain.User, error) {
-	
+
 	if !IsValidTeamName(teamName) {
 		return nil, resperrors.ErrBadRequest
 	}

@@ -226,7 +226,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(
 func pickRandomID(ids []string) string {
 
 	if len(ids) == 0 {
-		return "" 
+		return ""
 	}
 	if len(ids) == 1 {
 		return ids[0]

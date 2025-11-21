@@ -19,7 +19,7 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 }
 
 func (ur *UserRepository) SetFlagIsActive(ctx context.Context, userID string, isActive bool) (*domain.User, error) {
-	
+
 	flagQuery := `UPDATE users
 		SET is_active = $2, updated_at = NOW()
 		WHERE user_id = $1
@@ -38,7 +38,7 @@ func (ur *UserRepository) SetFlagIsActive(ctx context.Context, userID string, is
 }
 
 func (ur *UserRepository) GetUserByID(ctx context.Context, userID string) (*domain.User, error) {
-	
+
 	query := `SELECT user_id, username, team_name, is_active, created_at, updated_at
 		FROM users
 		WHERE user_id = $1`
@@ -55,7 +55,7 @@ func (ur *UserRepository) GetUserByID(ctx context.Context, userID string) (*doma
 }
 
 func (ur *UserRepository) GetActiveUsersByTeam(ctx context.Context, teamName string, exceptUserID string) ([]*domain.User, error) {
-	
+
 	query := `SELECT user_id, username, team_name, is_active, created_at, updated_at
 		FROM users
 		WHERE team_name = $1 AND is_active = true AND user_id != $2

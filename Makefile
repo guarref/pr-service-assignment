@@ -4,7 +4,15 @@
 DB_DSN := "postgres://postgres:PostgresPass@localhost:5432/prservice?sslmode=disable"
 MIGRATE := migrate -path ./migrations -database $(DB_DSN)
 
-.PHONY: help migrate-new migrate migrate-down migrate-force run build docker-up docker-down
+OPENAPI_FILE=api/openapi.yml
+OPENAPI_GEN_OUTPUT=internal/web/odomains/api.gen.go
+OPENAPI_GEN_PACKAGE=odomains
+
+.PHONY: help migrate-new migrate migrate-down migrate-force generate-openapi run build docker-up docker-down
+
+# кодогенерация
+generate-openapi:
+	oapi-codegen -generate types,server -package $(OPENAPI_GEN_PACKAGE) -o $(OPENAPI_GEN_OUTPUT) $(OPENAPI_FILE)
 
 # таргет для создания новой миграции
 migrate-new: 

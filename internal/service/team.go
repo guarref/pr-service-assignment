@@ -19,7 +19,7 @@ func NewTeamService(teamRepo repository.TeamRepository) *TeamService {
 }
 
 func (ts *TeamService) CreateTeam(ctx context.Context, team *domain.Team) error {
-	
+
 	if !IsValidTeamName(team.TeamName) {
 		return resperrors.ErrBadRequest
 	}
@@ -35,7 +35,7 @@ func (ts *TeamService) CreateTeam(ctx context.Context, team *domain.Team) error 
 }
 
 func (ts *TeamService) GetTeamByName(ctx context.Context, teamName string) (*domain.Team, error) {
-	
+
 	if !IsValidTeamName(teamName) {
 		return nil, resperrors.ErrBadRequest
 	}
@@ -49,7 +49,7 @@ func (ts *TeamService) GetTeamByName(ctx context.Context, teamName string) (*dom
 }
 
 func IsValidTeamName(name string) bool {
-	
+
 	if name == "" {
 		return false
 	}
