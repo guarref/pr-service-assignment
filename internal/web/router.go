@@ -22,24 +22,24 @@ func NewRouter(teamSvc *service.TeamService, userSvc *service.UserService, prSvc
 	}
 }
 
-func (s *Router) PostPullRequestCreate(ctx echo.Context) error {
-	return s.prHandler.PostPullRequestCreate(ctx)
+func (r *Router) PostPullRequestCreate(ctx echo.Context) error {
+	return r.prHandler.PostPullRequestCreate(ctx)
 }
 
-func (s *Router) PostPullRequestMerge(ctx echo.Context) error {
-	return s.prHandler.PostPullRequestMerge(ctx)
+func (r *Router) PostPullRequestMerge(ctx echo.Context) error {
+	return r.prHandler.PostPullRequestMerge(ctx)
 }
 
-func (s *Router) PostPullRequestReassign(ctx echo.Context) error {
-	return s.prHandler.PostPullRequestReassign(ctx)
+func (r *Router) PostPullRequestReassign(ctx echo.Context) error {
+	return r.prHandler.PostPullRequestReassign(ctx)
 }
 
-func (s *Router) PostTeamAdd(ctx echo.Context) error {
-	return s.teamHandler.PostTeamAdd(ctx)
+func (r *Router) PostTeamAdd(ctx echo.Context) error {
+	return r.teamHandler.PostTeamAdd(ctx)
 }
 
-func (s *Router) GetTeamGet(ctx echo.Context, params odomains.GetTeamGetParams) error {
-	return s.teamHandler.GetTeamGet(ctx, params)
+func (r *Router) GetTeamGet(ctx echo.Context, params odomains.GetTeamGetParams) error {
+	return r.teamHandler.GetTeamGet(ctx, params)
 }
 
 func (s *Router) GetUsersGetReview(ctx echo.Context, params odomains.GetUsersGetReviewParams) error {

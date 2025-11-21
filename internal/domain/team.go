@@ -3,9 +3,9 @@ package domain
 import "time"
 
 type TeamMember struct {
-	UserID   string `json:"user_id"`
-	UserName string `json:"username"`
-	IsActive bool   `json:"is_active"`
+	UserID   string `json:"user_id" db:"user_id"`
+	UserName string `json:"username" db:"username"`
+	IsActive bool   `json:"is_active" db:"is_active"`
 }
 
 type Team struct {

@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	
 	Port int `env:"PORT" envDefault:"8080"`
 
 	DBHost     string `env:"DB_HOST" envDefault:"localhost"`
