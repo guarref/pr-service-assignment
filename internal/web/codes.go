@@ -7,14 +7,14 @@ import (
 
 	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/resperrors"
-	"github.com/guarref/pr-service-assignment/internal/web/omodelss"
+	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
 )
 
 // NewErrorResponse – сборка ErrorResponse из кода и сообщения.
-func NewErrorResponse(code omodelss.ErrorResponseErrorCode, message string) omodelss.ErrorResponse {
+func NewErrorResponse(code omodels.ErrorResponseErrorCode, message string) omodels.ErrorResponse {
 	
-	var er omodelss.ErrorResponse
+	var er omodels.ErrorResponse
 	er.Error.Code = code
 	er.Error.Message = message
 
@@ -30,31 +30,31 @@ func writeDomainError(c echo.Context, err error) error {
 
 	// Валидация входных данных – просто 400 с сообщением
 	if errors.Is(err, resperrors.ErrBadRequest) {
-		resp := NewErrorResponse(omodelss.NOTFOUND, err.Error())
+		resp := NewErrorResponse(omodels.NOTFOUND, err.Error())
 		return c.JSON(http.StatusBadRequest, resp)
 	}
 
 	// 409 / 400 — доменные конфликты
 	switch {
 	case errors.Is(err, resperrors.ErrTeamExists):
-		resp := NewErrorResponse(omodelss.TEAMEXISTS, "team_name already exists")
+		resp := NewErrorResponse(omodels.TEAMEXISTS, "team_name already exists")
 		// В openapi для TEAM_EXISTS стоит 400
 		return c.JSON(http.StatusBadRequest, resp)
 
 	case errors.Is(err, resperrors.ErrPullRequestExists):
-		resp := NewErrorResponse(omodelss.PREXISTS, "PR id already exists")
+		resp := NewErrorResponse(omodels.PREXISTS, "PR id already exists")
 		return c.JSON(http.StatusConflict, resp)
 
 	case errors.Is(err, resperrors.ErrPullRequestMerged):
-		resp := NewErrorResponse(omodelss.PRMERGED, "cannot reassign on merged PR")
+		resp := NewErrorResponse(omodels.PRMERGED, "cannot reassign on merged PR")
 		return c.JSON(http.StatusConflict, resp)
 
 	case errors.Is(err, resperrors.ErrNotAssigned):
-		resp := NewErrorResponse(omodelss.NOTASSIGNED, "reviewer is not assigned to this PR")
+		resp := NewErrorResponse(omodels.NOTASSIGNED, "reviewer is not assigned to this PR")
 		return c.JSON(http.StatusConflict, resp)
 
 	case errors.Is(err, resperrors.ErrNoCandidate):
-		resp := NewErrorResponse(omodelss.NOCANDIDATE, "no active replacement candidate in team")
+		resp := NewErrorResponse(omodels.NOCANDIDATE, "no active replacement candidate in team")
 		return c.JSON(http.StatusConflict, resp)
 	}
 
@@ -62,35 +62,35 @@ func writeDomainError(c echo.Context, err error) error {
 	if errors.Is(err, resperrors.ErrUserNotFound) ||
 		errors.Is(err, resperrors.ErrTeamNotFound) ||
 		errors.Is(err, resperrors.ErrPullRequestNotFound) {
-		resp := NewErrorResponse(omodelss.NOTFOUND, "resource not found")
+		resp := NewErrorResponse(omodels.NOTFOUND, "resource not found")
 		return c.JSON(http.StatusNotFound, resp)
 	}
 
 	// Фолбэк – 500 с generic сообщением
-	resp := NewErrorResponse(omodelss.NOTFOUND, "internal server error")
+	resp := NewErrorResponse(omodels.NOTFOUND, "internal server error")
 	return c.JSON(http.StatusInternalServerError, resp)
 }
 
 // Маппинги домен → openapi
 
-func toOAPITeam(t *models.Team) omodelss.Team {
-	members := make([]omodelss.TeamMember, 0, len(t.Members))
+func toOAPITeam(t *models.Team) omodels.Team {
+	members := make([]omodels.TeamMember, 0, len(t.Members))
 	for _, m := range t.Members {
-		members = append(members, omodelss.TeamMember{
+		members = append(members, omodels.TeamMember{
 			UserId:   m.UserID,
 			Username: m.UserName,
 			IsActive: m.IsActive,
 		})
 	}
 
-	return omodelss.Team{
+	return omodels.Team{
 		TeamName: t.TeamName,
 		Members:  members,
 	}
 }
 
-func toOAPIUser(u *models.User) omodelss.User {
-	return omodelss.User{
+func toOAPIUser(u *models.User) omodels.User {
+	return omodels.User{
 		UserId:   u.UserID,
 		Username: u.UserName,
 		TeamName: u.TeamName,
@@ -98,7 +98,7 @@ func toOAPIUser(u *models.User) omodelss.User {
 	}
 }
 
-func toOAPIPullRequest(pr *models.PullRequest) omodelss.PullRequest {
+func toOAPIPullRequest(pr *models.PullRequest) omodels.PullRequest {
 	var createdAt *time.Time
 	if pr.CreatedAt != nil {
 		t := *pr.CreatedAt
@@ -112,28 +112,28 @@ func toOAPIPullRequest(pr *models.PullRequest) omodelss.PullRequest {
         mergedAt = &t
     }
 
-	return omodelss.PullRequest{
+	return omodels.PullRequest{
 		PullRequestId:     pr.PullRequestID,
 		PullRequestName:   pr.PullRequestName,
 		AuthorId:          pr.AuthorID,
-		Status:            omodelss.PullRequestStatus(pr.Status),
+		Status:            omodels.PullRequestStatus(pr.Status),
 		AssignedReviewers: append([]string(nil), pr.AssignedReviewers...),
 		CreatedAt:         createdAt,
 		MergedAt:          mergedAt,
 	}
 }
 
-func toOAPIPullRequestShort(pr *models.PullRequestShort) omodelss.PullRequestShort {
-	return omodelss.PullRequestShort{
+func toOAPIPullRequestShort(pr *models.PullRequestShort) omodels.PullRequestShort {
+	return omodels.PullRequestShort{
 		PullRequestId:   pr.PullRequestID,
 		PullRequestName: pr.PullRequestName,
 		AuthorId:        pr.AuthorID,
-		Status:          omodelss.PullRequestShortStatus(pr.Status),
+		Status:          omodels.PullRequestShortStatus(pr.Status),
 	}
 }
 
-func toOAPIPullRequestShortList(prs []*models.PullRequestShort) []omodelss.PullRequestShort {
-	result := make([]omodelss.PullRequestShort, 0, len(prs))
+func toOAPIPullRequestShortList(prs []*models.PullRequestShort) []omodels.PullRequestShort {
+	result := make([]omodels.PullRequestShort, 0, len(prs))
 	for _, pr := range prs {
 		result = append(result, toOAPIPullRequestShort(pr))
 	}
