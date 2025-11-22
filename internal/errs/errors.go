@@ -1,4 +1,4 @@
-package resperrors
+package errs
 
 import (
 	"fmt"
@@ -19,7 +19,6 @@ func NewRespError(code, message string, status int) *RespError {
 	}
 }
 
-// В логах будет "BAD_REQUEST: invalid request body"
 func (e *RespError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
