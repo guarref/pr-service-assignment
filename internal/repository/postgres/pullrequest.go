@@ -7,7 +7,7 @@ import (
 	"math/rand"
 
 	"github.com/guarref/pr-service-assignment/internal/models"
-	"github.com/guarref/pr-service-assignment/internal/resperrors"
+	"github.com/guarref/pr-service-assignment/internal/errors"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -20,11 +20,11 @@ func NewPullRequestRepository(db *sqlx.DB, userRepo *UserRepository) *PullReques
 	return &PullRequestRepository{db: db, userRepo: userRepo}
 }
 
-func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *models.PullRequest) error {
+func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
 
 	tx, err := prr.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("beginning transaction create_pull_request: %w", err)
+		return nil, fmt.Errorf("beginning transaction create_pull_request: %w", err)
 	}
 	defer tx.Rollback()
 
@@ -34,76 +34,34 @@ func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *mod
 		RETURNING pull_request_id, pull_request_name, author_id, status, created_at, merged_at`
 
 	var newPR models.PullRequest
+
 	err = tx.GetContext(ctx, &newPR, creationPullRequestQuery, pr.PullRequestID, pr.PullRequestName, pr.AuthorID, pr.Status)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return resperrors.ErrPullRequestExists
+			return nil, errors.ErrPullRequestExists
 		}
-		return fmt.Errorf("error pull request creation: %w", err)
+		return nil, fmt.Errorf("error pull request creation: %w", err)
 	}
-
-	pr.CreatedAt = newPR.CreatedAt
-	pr.MergedAt = newPR.MergedAt
 
 	if len(pr.AssignedReviewers) > 0 {
 		reviewerIns := `INSERT INTO pr_reviewers (pull_request_id, user_id, assigned_at)
 			VALUES ($1, $2, NOW())`
 
 		for _, reviewerID := range pr.AssignedReviewers {
-			if _, err := tx.ExecContext(ctx, reviewerIns, pr.PullRequestID, reviewerID); err != nil {
-				return fmt.Errorf("error addition reviewer %s: %w", reviewerID, err)
+			if _, err := tx.ExecContext(ctx, reviewerIns, newPR.PullRequestID, reviewerID); err != nil {
+				return nil, fmt.Errorf("error addition reviewer %s: %w", reviewerID, err)
 			}
 		}
 	}
 
+	newPR.AssignedReviewers = append([]string(nil), pr.AssignedReviewers...)
+
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction create_pull_request: %w", err)
+		return nil, fmt.Errorf("commit transaction create_pull_request: %w", err)
 	}
 
-	return nil
+	return &newPR, nil
 }
-
-// func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *models.PullRequest) error {
-
-// 	tx, err := prr.db.BeginTxx(ctx, nil)
-// 	if err != nil {
-// 		return fmt.Errorf("beginning transaction create_pull_request: %w", err)
-// 	}
-// 	defer tx.Rollback()
-
-// 	creationPullRequestQuery := `INSERT INTO pull_requests (pull_request_id, pull_request_name, author_id, status, created_at, merged_at)
-// 		VALUES ($1, $2, $3, $4, NOW(), NULL) ON CONFLICT (pull_request_id) DO NOTHING`
-
-// 	res, err := tx.ExecContext(ctx, creationPullRequestQuery, pr.PullRequestID, pr.PullRequestName, pr.AuthorID, pr.Status)
-// 	if err != nil {
-// 		return fmt.Errorf("insert pull request: %w", err)
-// 	}
-
-// 	rows, err := res.RowsAffected()
-// 	if err != nil {
-// 		return fmt.Errorf("rows affected pull_request: %w", err)
-// 	}
-// 	if rows == 0 {
-// 		return resperrors.ErrPullRequestExists
-// 	}
-
-// 	if len(pr.AssignedReviewers) > 0 {
-// 		insertReviewerQuery := `INSERT INTO pr_reviewers (pull_request_id, user_id, assigned_at)
-// 			VALUES ($1, $2, NOW())`
-
-// 		for _, reviewerID := range pr.AssignedReviewers {
-// 			if _, err := tx.ExecContext(ctx, insertReviewerQuery, pr.PullRequestID, reviewerID); err != nil {
-// 				return fmt.Errorf("addition reviewer %s: %w", reviewerID, err)
-// 			}
-// 		}
-// 	}
-
-// 	if err := tx.Commit(); err != nil {
-// 		return fmt.Errorf("commit transaction create_pull_request: %w", err)
-// 	}
-
-// 	return nil
-// }
 
 func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID string) (*models.PullRequest, error) {
 
@@ -122,7 +80,7 @@ func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID
 	var pr models.PullRequest
 	if err := tx.GetContext(ctx, &pr, updateQuery, models.PullRequestMerged, prID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, resperrors.ErrPullRequestNotFound
+			return nil, errors.ErrPullRequestNotFound
 		}
 		return nil, fmt.Errorf("error updating pull request status to MERGED: %w", err)
 	}
@@ -161,13 +119,13 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 	var pr models.PullRequest
 	if err := tx.GetContext(ctx, &pr, prQuery, prID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, "", resperrors.ErrPullRequestNotFound
+			return nil, "", errors.ErrPullRequestNotFound
 		}
 		return nil, "", fmt.Errorf("error getting pull request: %w", err)
 	}
 
 	if pr.Status == models.PullRequestMerged {
-		return nil, "", resperrors.ErrPullRequestMerged
+		return nil, "", errors.ErrPullRequestMerged
 	}
 
 	checkReviewerQuery := `SELECT EXISTS(SELECT 1 FROM pr_reviewers
@@ -178,7 +136,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 		return nil, "", fmt.Errorf("error checking reviewer assigned: %w", err)
 	}
 	if !isAssigned {
-		return nil, "", resperrors.ErrNotAssigned
+		return nil, "", errors.ErrNotAssigned
 	}
 
 	teamQuery := `SELECT team_name
@@ -188,7 +146,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 	var oldUserTeam string
 	if err := tx.GetContext(ctx, &oldUserTeam, teamQuery, oldUserID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, "", resperrors.ErrUserNotFound
+			return nil, "", errors.ErrUserNotFound
 		}
 		return nil, "", fmt.Errorf("error getting old user team: %w", err)
 	}
@@ -225,7 +183,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 	}
 
 	if len(accessible) == 0 {
-		return nil, "", resperrors.ErrNoCandidate
+		return nil, "", errors.ErrNoCandidate
 	}
 
 	newReviewerID := getRandomID(accessible)

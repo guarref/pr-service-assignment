@@ -6,9 +6,9 @@ import (
 )
 
 type RespError struct {
-	Code       string 
-	Message    string 
-	StatusCode int   
+	Code       string
+	Message    string
+	StatusCode int
 }
 
 func NewRespError(code, message string, status int) *RespError {
@@ -19,16 +19,17 @@ func NewRespError(code, message string, status int) *RespError {
 	}
 }
 
+// В логах будет "BAD_REQUEST: invalid request body"
 func (e *RespError) Error() string {
-	return fmt.Sprintf("[%s] %s", e.Code, e.Message)
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
 
 var (
-	//409
-	ErrTeamExists = &RespError{						
+	// 409
+	ErrTeamExists = &RespError{
 		Code:       "TEAM_EXISTS",
 		Message:    "team_name already exists",
-		StatusCode: http.StatusConflict, 
+		StatusCode: http.StatusConflict,
 	}
 
 	ErrPullRequestExists = &RespError{
@@ -55,11 +56,11 @@ var (
 		StatusCode: http.StatusConflict,
 	}
 
-	//404
-	ErrNotFound = &RespError{					
+	// 404
+	ErrNotFound = &RespError{
 		Code:       "NOT_FOUND",
 		Message:    "resource not found",
-		StatusCode: http.StatusNotFound, 
+		StatusCode: http.StatusNotFound,
 	}
 
 	ErrTeamNotFound = &RespError{
@@ -80,11 +81,11 @@ var (
 		StatusCode: http.StatusNotFound,
 	}
 
-	//400
-	ErrBadRequest = &RespError{						
+	// 400
+	ErrBadRequest = &RespError{
 		Code:       "BAD_REQUEST",
 		Message:    "invalid request body",
-		StatusCode: http.StatusBadRequest, 
+		StatusCode: http.StatusBadRequest,
 	}
 
 	ErrInvalidJSON = &RespError{

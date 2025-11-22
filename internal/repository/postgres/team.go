@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/guarref/pr-service-assignment/internal/models"
-	"github.com/guarref/pr-service-assignment/internal/resperrors"
+	"github.com/guarref/pr-service-assignment/internal/errors"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -35,7 +35,7 @@ func (tr *TeamRepository) CreateTeam(ctx context.Context, team *models.Team) err
 		return fmt.Errorf("error checking for team existence: %w", err)
 	}
 	if isExists {
-		return resperrors.ErrTeamExists
+		return errors.ErrTeamExists
 	}
 
 	creationTeamQuery := `INSERT INTO teams (team_name, created_at, updated_at) VALUES ($1, NOW(), NOW())`
@@ -75,7 +75,7 @@ func (tr *TeamRepository) GetTeamByName(ctx context.Context, teamName string) (*
 
 	if err := tr.db.GetContext(ctx, &team, teamQuery, teamName); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, resperrors.ErrTeamNotFound
+			return nil, errors.ErrTeamNotFound
 		}
 		return nil, fmt.Errorf("error gettig team: %w", err)
 	}

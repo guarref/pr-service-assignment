@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/guarref/pr-service-assignment/internal/models"
-	"github.com/guarref/pr-service-assignment/internal/resperrors"
+	"github.com/guarref/pr-service-assignment/internal/errors"
 	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
 )
@@ -26,36 +26,36 @@ func mapErrorToHTTPResponse(c echo.Context, err error) error {
 		return nil
 	}
 
-	if errors.Is(err, resperrors.ErrBadRequest) {
+	if errors.Is(err, errors.ErrBadRequest) {
 		resp := NewErrorResponse(omodels.NOTFOUND, err.Error())
 		return c.JSON(http.StatusBadRequest, resp)
 	}
 
 	switch {
-	case errors.Is(err, resperrors.ErrTeamExists):
+	case errors.Is(err, errors.ErrTeamExists):
 		resp := NewErrorResponse(omodels.TEAMEXISTS, "team_name already exists")
 		return c.JSON(http.StatusBadRequest, resp)
 
-	case errors.Is(err, resperrors.ErrPullRequestExists):
+	case errors.Is(err, errors.ErrPullRequestExists):
 		resp := NewErrorResponse(omodels.PREXISTS, "PR id already exists")
 		return c.JSON(http.StatusConflict, resp)
 
-	case errors.Is(err, resperrors.ErrPullRequestMerged):
+	case errors.Is(err, errors.ErrPullRequestMerged):
 		resp := NewErrorResponse(omodels.PRMERGED, "cannot reassign on merged PR")
 		return c.JSON(http.StatusConflict, resp)
 
-	case errors.Is(err, resperrors.ErrNotAssigned):
+	case errors.Is(err, errors.ErrNotAssigned):
 		resp := NewErrorResponse(omodels.NOTASSIGNED, "reviewer is not assigned to this PR")
 		return c.JSON(http.StatusConflict, resp)
 
-	case errors.Is(err, resperrors.ErrNoCandidate):
+	case errors.Is(err, errors.ErrNoCandidate):
 		resp := NewErrorResponse(omodels.NOCANDIDATE, "no active replacement candidate in team")
 		return c.JSON(http.StatusConflict, resp)
 	}
 
-	if errors.Is(err, resperrors.ErrUserNotFound) ||
-		errors.Is(err, resperrors.ErrTeamNotFound) ||
-		errors.Is(err, resperrors.ErrPullRequestNotFound) {
+	if errors.Is(err, errors.ErrUserNotFound) ||
+		errors.Is(err, errors.ErrTeamNotFound) ||
+		errors.Is(err, errors.ErrPullRequestNotFound) {
 		resp := NewErrorResponse(omodels.NOTFOUND, "resource not found")
 		return c.JSON(http.StatusNotFound, resp)
 	}

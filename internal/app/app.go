@@ -68,7 +68,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		fmt.Println("shutdown was caused")
+		fmt.Println("\nshutdown was caused")
 
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -76,7 +76,7 @@ func (a *App) Run(ctx context.Context) error {
 		if err := a.echo.Shutdown(shutdownCtx); err != nil {
 			_ = a.echo.Close()
 			a.db.Close()
-			return fmt.Errorf("shutdown(echo): %w", err)
+			return fmt.Errorf("\nshutdown(echo): %w", err)
 		}
 
 		a.db.Close()

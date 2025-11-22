@@ -8,7 +8,7 @@ import (
 
 	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/repository"
-	"github.com/guarref/pr-service-assignment/internal/resperrors"
+	"github.com/guarref/pr-service-assignment/internal/errors"
 )
 
 type PullRequestService struct {
@@ -20,10 +20,37 @@ func NewPullRequestService(prRepo repository.PullRequestRepository, userRepo rep
 	return &PullRequestService{prRepo: prRepo, userRepo: userRepo}
 }
 
+// func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
+	
+// 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
+// 		return nil, errors.ErrBadRequest
+// 	}
+
+// 	author, err := prs.userRepo.GetUserByID(ctx, pr.AuthorID)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error getting author with id %s: %w", pr.AuthorID, err)
+// 	}
+
+// 	activeUsers, err := prs.userRepo.GetActiveUsersByTeam(ctx, author.TeamName, author.UserID)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error getting active users for team %s: %w", author.TeamName, err)
+// 	}
+
+// 	reviewers := randomUserSelection(activeUsers, 2)
+// 	pr.AssignedReviewers = reviewers
+// 	pr.Status = models.PullRequestOpen
+
+// 	if err := prs.prRepo.CreatePullRequest(ctx, pr); err != nil {
+// 		return nil, fmt.Errorf("error creating pull request with id %s: %w", pr.PullRequestID, err)
+// 	}
+
+// 	return pr, nil
+// }
+
 func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
 	
 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
-		return nil, resperrors.ErrBadRequest
+		return nil, errors.ErrBadRequest
 	}
 
 	author, err := prs.userRepo.GetUserByID(ctx, pr.AuthorID)
@@ -40,17 +67,22 @@ func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models
 	pr.AssignedReviewers = reviewers
 	pr.Status = models.PullRequestOpen
 
-	if err := prs.prRepo.CreatePullRequest(ctx, pr); err != nil {
+	created, err := prs.prRepo.CreatePullRequest(ctx, pr)
+	if err != nil {
 		return nil, fmt.Errorf("error creating pull request with id %s: %w", pr.PullRequestID, err)
 	}
 
-	return pr, nil
+	if len(created.AssignedReviewers) == 0 && len(pr.AssignedReviewers) > 0 {
+		created.AssignedReviewers = append([]string(nil), pr.AssignedReviewers...)
+	}
+
+	return created, nil
 }
 
 func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string) (*models.PullRequest, error) {
 	
 	if prID == "" {
-		return nil, resperrors.ErrBadRequest
+		return nil, errors.ErrBadRequest
 	}
 
 	pr, err := prs.prRepo.MergePullRequestByID(ctx, prID)
@@ -64,7 +96,7 @@ func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string
 func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*models.PullRequest, string, error) {
 	
 	if prID == "" || oldUserID == "" {
-		return nil, "", resperrors.ErrBadRequest
+		return nil, "", errors.ErrBadRequest
 	}
 
 	pr, newReviewerID, err := prs.prRepo.ReassignToPullRequest(ctx, prID, oldUserID)
@@ -78,7 +110,7 @@ func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID s
 func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, userID string) ([]*models.PullRequestShort, error) {
 	
 	if userID == "" {
-		return nil, resperrors.ErrBadRequest
+		return nil, errors.ErrBadRequest
 	}
 
 	prsList, err := prs.prRepo.GetPullRequestByReviewerID(ctx, userID)
