@@ -22,9 +22,10 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
+
 	cfg := &Config{}
 	if err := env.Parse(cfg); err != nil {
-		return nil, fmt.Errorf("failed to parse config: %w", err)
+		return nil, fmt.Errorf("error parsing config: %w", err)
 	}
 
 	return cfg, nil

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/guarref/pr-service-assignment/internal/domain"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/resperrors"
 	"github.com/jmoiron/sqlx"
 )
@@ -20,7 +20,7 @@ func NewTeamRepository(db *sqlx.DB) *TeamRepository {
 
 // если есть команда, то TEAM_EXISTS, если нет, то создаем
 // если есть пользователь, то обновляем данные, если нет, то создаем
-func (tr *TeamRepository) CreateTeam(ctx context.Context, team *domain.Team) error {
+func (tr *TeamRepository) CreateTeam(ctx context.Context, team *models.Team) error {
 
 	tx, err := tr.db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -64,9 +64,9 @@ func (tr *TeamRepository) CreateTeam(ctx context.Context, team *domain.Team) err
 	return nil
 }
 
-func (tr *TeamRepository) GetTeamByName(ctx context.Context, teamName string) (*domain.Team, error) {
+func (tr *TeamRepository) GetTeamByName(ctx context.Context, teamName string) (*models.Team, error) {
 
-	var team domain.Team
+	var team models.Team
 
 	teamQuery := `SELECT team_name, created_at, updated_at
 		FROM teams
@@ -84,7 +84,7 @@ func (tr *TeamRepository) GetTeamByName(ctx context.Context, teamName string) (*
 		WHERE team_name = $1
 		ORDER BY username`
 
-	var members []domain.TeamMember
+	var members []models.TeamMember
 	if err := tr.db.SelectContext(ctx, &members, membersQuery, teamName); err != nil {
 		return nil, fmt.Errorf("get team members: %w", err)
 	}

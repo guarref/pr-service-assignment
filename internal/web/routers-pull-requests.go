@@ -3,10 +3,10 @@ package web
 import (
 	"net/http"
 
-	"github.com/guarref/pr-service-assignment/internal/domain"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/resperrors"
 	"github.com/guarref/pr-service-assignment/internal/service"
-	"github.com/guarref/pr-service-assignment/internal/web/odomains"
+	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,10 +20,10 @@ func NewPullRequestHandler(s *service.PullRequestService) *PullRequestHandler {
 
 // POST /pullRequest/create
 func (h *PullRequestHandler) PostPullRequestCreate(ctx echo.Context) error {
-	var body odomains.PostPullRequestCreateJSONRequestBody
+	var body omodels.PostPullRequestCreateJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
-		resp := NewErrorResponse(odomains.NOTFOUND, "invalid request body")
+		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
 		return ctx.JSON(http.StatusBadRequest, resp)
 	}
 
@@ -31,7 +31,7 @@ func (h *PullRequestHandler) PostPullRequestCreate(ctx echo.Context) error {
 		return writeDomainError(ctx, resperrors.ErrBadRequest)
 	}
 
-	pr := domain.PullRequest{
+	pr := models.PullRequest{
 		PullRequestID:   body.PullRequestId,
 		PullRequestName: body.PullRequestName,
 		AuthorID:        body.AuthorId,
@@ -45,7 +45,7 @@ func (h *PullRequestHandler) PostPullRequestCreate(ctx echo.Context) error {
 	respPR := toOAPIPullRequest(created)
 
 	return ctx.JSON(http.StatusCreated, struct {
-		PR odomains.PullRequest `json:"pr"`
+		PR omodels.PullRequest `json:"pr"`
 	}{
 		PR: respPR,
 	})
@@ -53,10 +53,10 @@ func (h *PullRequestHandler) PostPullRequestCreate(ctx echo.Context) error {
 
 // POST /pullRequest/merge
 func (h *PullRequestHandler) PostPullRequestMerge(ctx echo.Context) error {
-	var body odomains.PostPullRequestMergeJSONRequestBody
+	var body omodels.PostPullRequestMergeJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
-		resp := NewErrorResponse(odomains.NOTFOUND, "invalid request body")
+		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
 		return ctx.JSON(http.StatusBadRequest, resp)
 	}
 
@@ -72,7 +72,7 @@ func (h *PullRequestHandler) PostPullRequestMerge(ctx echo.Context) error {
 	respPR := toOAPIPullRequest(pr)
 
 	return ctx.JSON(http.StatusOK, struct {
-		PR odomains.PullRequest `json:"pr"`
+		PR omodels.PullRequest `json:"pr"`
 	}{
 		PR: respPR,
 	})
@@ -80,10 +80,10 @@ func (h *PullRequestHandler) PostPullRequestMerge(ctx echo.Context) error {
 
 // POST /pullRequest/reassign
 func (h *PullRequestHandler) PostPullRequestReassign(ctx echo.Context) error {
-	var body odomains.PostPullRequestReassignJSONRequestBody
+	var body omodels.PostPullRequestReassignJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
-		resp := NewErrorResponse(odomains.NOTFOUND, "invalid request body")
+		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
 		return ctx.JSON(http.StatusBadRequest, resp)
 	}
 
@@ -99,7 +99,7 @@ func (h *PullRequestHandler) PostPullRequestReassign(ctx echo.Context) error {
 	respPR := toOAPIPullRequest(pr)
 
 	return ctx.JSON(http.StatusOK, struct {
-		PR         odomains.PullRequest `json:"pr"`
+		PR         omodels.PullRequest `json:"pr"`
 		ReplacedBy string               `json:"replaced_by"`
 	}{
 		PR:         respPR,
@@ -108,7 +108,7 @@ func (h *PullRequestHandler) PostPullRequestReassign(ctx echo.Context) error {
 }
 
 // GET /users/getReview
-func (h *PullRequestHandler) GetUsersGetReview(ctx echo.Context, params odomains.GetUsersGetReviewParams) error {
+func (h *PullRequestHandler) GetUsersGetReview(ctx echo.Context, params omodels.GetUsersGetReviewParams) error {
 	userID := params.UserId
 	if userID == "" {
 		return writeDomainError(ctx, resperrors.ErrBadRequest)
@@ -123,7 +123,7 @@ func (h *PullRequestHandler) GetUsersGetReview(ctx echo.Context, params odomains
 
 	return ctx.JSON(http.StatusOK, struct {
 		UserID       string                     `json:"user_id"`
-		PullRequests []odomains.PullRequestShort `json:"pull_requests"`
+		PullRequests []omodels.PullRequestShort `json:"pull_requests"`
 	}{
 		UserID:       userID,
 		PullRequests: respList,

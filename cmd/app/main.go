@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	// Глобальный контекст с graceful shutdown
+	
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
@@ -19,7 +19,7 @@ func main() {
 
 	application, err := app.New(ctx, cfg)
 	if err != nil {
-		log.Fatalf("failed to init app: %v", err)
+		log.Fatalf("error creating new application: %v", err)
 	}
 
 	if err := application.Run(ctx); err != nil {

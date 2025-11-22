@@ -2,11 +2,11 @@ package web
 
 import (
 	"github.com/guarref/pr-service-assignment/internal/service"
-	"github.com/guarref/pr-service-assignment/internal/web/odomains"
+	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
 )
 
-// Router – единый тип, реализующий odomains.ServerInterface.
+// Router – единый тип, реализующий omodelss.ServerInterface.
 // Внутри делегирует в TeamHandler / UserHandler / PullRequestHandler.
 type Router struct {
 	teamHandler *TeamHandler
@@ -38,11 +38,11 @@ func (r *Router) PostTeamAdd(ctx echo.Context) error {
 	return r.teamHandler.PostTeamAdd(ctx)
 }
 
-func (r *Router) GetTeamGet(ctx echo.Context, params odomains.GetTeamGetParams) error {
+func (r *Router) GetTeamGet(ctx echo.Context, params omodelss.GetTeamGetParams) error {
 	return r.teamHandler.GetTeamGet(ctx, params)
 }
 
-func (s *Router) GetUsersGetReview(ctx echo.Context, params odomains.GetUsersGetReviewParams) error {
+func (s *Router) GetUsersGetReview(ctx echo.Context, params omodelss.GetUsersGetReviewParams) error {
 	return s.prHandler.GetUsersGetReview(ctx, params)
 }
 
@@ -54,5 +54,5 @@ func (s *Router) PostUsersSetIsActive(ctx echo.Context) error {
 func RegisterRoutes(e *echo.Echo, teamSvc *service.TeamService, userSvc *service.UserService, prSvc *service.PullRequestService) {
 	
 	server := NewRouter(teamSvc, userSvc, prSvc)
-	odomains.RegisterHandlers(e, server)
+	omodelss.RegisterHandlers(e, server)
 }

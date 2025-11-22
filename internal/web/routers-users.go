@@ -5,7 +5,7 @@ import (
 
 	"github.com/guarref/pr-service-assignment/internal/resperrors"
 	"github.com/guarref/pr-service-assignment/internal/service"
-	"github.com/guarref/pr-service-assignment/internal/web/odomains"
+	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,10 +19,10 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 
 // POST /users/setIsActive
 func (h *UserHandler) PostUsersSetIsActive(ctx echo.Context) error {
-	var body odomains.PostUsersSetIsActiveJSONRequestBody
+	var body omodels.PostUsersSetIsActiveJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
-		resp := NewErrorResponse(odomains.NOTFOUND, "invalid request body")
+		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
 		return ctx.JSON(http.StatusBadRequest, resp)
 	}
 
@@ -38,7 +38,7 @@ func (h *UserHandler) PostUsersSetIsActive(ctx echo.Context) error {
 	respUser := toOAPIUser(user)
 
 	return ctx.JSON(http.StatusOK, struct {
-		User odomains.User `json:"user"`
+		User omodels.User `json:"user"`
 	}{
 		User: respUser,
 	})

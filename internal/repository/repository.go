@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/guarref/pr-service-assignment/internal/domain"
+	"github.com/guarref/pr-service-assignment/internal/models"
 )
 
 type TeamRepository interface {

@@ -3,10 +3,10 @@ package web
 import (
 	"net/http"
 
-	"github.com/guarref/pr-service-assignment/internal/domain"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/resperrors"
 	"github.com/guarref/pr-service-assignment/internal/service"
-	"github.com/guarref/pr-service-assignment/internal/web/odomains"
+	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,20 +20,20 @@ func NewTeamHandler(s *service.TeamService) *TeamHandler {
 
 // POST /team/add
 func (h *TeamHandler) PostTeamAdd(ctx echo.Context) error {
-	var body odomains.PostTeamAddJSONRequestBody
+	var body omodels.PostTeamAddJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
-		resp := NewErrorResponse(odomains.NOTFOUND, "invalid request body")
+		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
 		return ctx.JSON(http.StatusBadRequest, resp)
 	}
 
-	team := domain.Team{
+	team := models.Team{
 		TeamName: body.TeamName,
-		Members:  make([]domain.TeamMember, 0, len(body.Members)),
+		Members:  make([]models.TeamMember, 0, len(body.Members)),
 	}
 
 	for _, m := range body.Members {
-		team.Members = append(team.Members, domain.TeamMember{
+		team.Members = append(team.Members, models.TeamMember{
 			UserID:   m.UserId,
 			UserName: m.Username,
 			IsActive: m.IsActive,
@@ -47,14 +47,14 @@ func (h *TeamHandler) PostTeamAdd(ctx echo.Context) error {
 	respTeam := toOAPITeam(&team)
 
 	return ctx.JSON(http.StatusCreated, struct {
-		Team odomains.Team `json:"team"`
+		Team omodels.Team `json:"team"`
 	}{
 		Team: respTeam,
 	})
 }
 
 // GET /team/get
-func (h *TeamHandler) GetTeamGet(ctx echo.Context, params odomains.GetTeamGetParams) error {
+func (h *TeamHandler) GetTeamGet(ctx echo.Context, params omodels.GetTeamGetParams) error {
 	teamName := params.TeamName
 	if teamName == "" {
 		return writeDomainError(ctx, resperrors.ErrBadRequest)

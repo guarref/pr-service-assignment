@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/guarref/pr-service-assignment/internal/domain"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/repository"
 	"github.com/guarref/pr-service-assignment/internal/resperrors"
 )
@@ -21,7 +21,7 @@ func NewPullRequestService(prRepo repository.PullRequestRepository, userRepo rep
 	return &PullRequestService{prRepo: prRepo, userRepo: userRepo}
 }
 
-func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *domain.PullRequest) (*domain.PullRequest, error) {
+func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
 		return nil, resperrors.ErrBadRequest
 	}
@@ -40,7 +40,7 @@ func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *domain
 
 	reviewers := randomUserSelection(activeUsers, 2)
 	pr.AssignedReviewers = reviewers
-	pr.Status = domain.PullRequestOpen
+	pr.Status = models.PullRequestOpen
 
 	if err := prs.prRepo.CreatePullRequest(ctx, pr); err != nil {
 		return nil, fmt.Errorf("error creating pull request with id %s: %w", pr.PullRequestID, err)
@@ -49,7 +49,7 @@ func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *domain
 	return pr, nil
 }
 
-func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string) (*domain.PullRequest, error) {
+func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string) (*models.PullRequest, error) {
 	if prID == "" {
 		return nil, resperrors.ErrBadRequest
 	}
@@ -62,7 +62,7 @@ func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string
 	return pr, nil
 }
 
-func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*domain.PullRequest, string, error) {
+func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*models.PullRequest, string, error) {
 	if prID == "" || oldUserID == "" {
 		return nil, "", resperrors.ErrBadRequest
 	}
@@ -75,7 +75,7 @@ func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID s
 	return pr, newReviewerID, nil
 }
 
-func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, userID string) ([]*domain.PullRequestShort, error) {
+func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, userID string) ([]*models.PullRequestShort, error) {
 	if userID == "" {
 		return nil, resperrors.ErrBadRequest
 	}
@@ -88,7 +88,7 @@ func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, us
 	return prsList, nil
 }
 
-func randomUserSelection(activeUsers []*domain.User, num int) []string {
+func randomUserSelection(activeUsers []*models.User, num int) []string {
 	if len(activeUsers) == 0 {
 		return []string{}
 	}

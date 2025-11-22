@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/guarref/pr-service-assignment/internal/domain"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/resperrors"
 	"github.com/jmoiron/sqlx"
 )
@@ -23,36 +23,56 @@ func NewPullRequestRepository(db *sqlx.DB, userRepo *UserRepository) *PullReques
 	}
 }
 
-func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *domain.PullRequest) error {
-
+func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *models.PullRequest) error {
 	tx, err := prr.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("beginning transaction create_pull_request: %w", err)
 	}
 	defer tx.Rollback()
 
-	creationPullRequestQuery := `INSERT INTO pull_requests (pull_request_id, pull_request_name, author_id, status, created_at, merged_at) 
-		VALUES ($1, $2, $3, $4, NOW(), NULL) ON CONFLICT (pull_request_id) DO NOTHING`
+	insertQuery := `
+		INSERT INTO pull_requests (
+			pull_request_id,
+			pull_request_name,
+			author_id,
+			status,
+			created_at,
+			merged_at
+		)
+		VALUES ($1, $2, $3, $4, NOW(), NULL)
+		ON CONFLICT (pull_request_id) DO NOTHING
+		RETURNING pull_request_id, pull_request_name, author_id, status, created_at, merged_at
+	`
 
-	res, err := tx.ExecContext(ctx, creationPullRequestQuery, pr.PullRequestID, pr.PullRequestName, pr.AuthorID, pr.Status)
+	var inserted models.PullRequest
+	err = tx.GetContext(
+		ctx,
+		&inserted,
+		insertQuery,
+		pr.PullRequestID,
+		pr.PullRequestName,
+		pr.AuthorID,
+		pr.Status,
+	)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return resperrors.ErrPullRequestExists
+		}
 		return fmt.Errorf("insert pull request: %w", err)
 	}
 
-	rows, err := res.RowsAffected()
-	if err != nil {
-		return fmt.Errorf("rows affected pull_request: %w", err)
-	}
-	if rows == 0 {
-		return resperrors.ErrPullRequestExists
-	}
+	// Заполняем поля в исходном pr
+	pr.CreatedAt = inserted.CreatedAt
+	pr.MergedAt = inserted.MergedAt
 
+	// Если есть ревьюверы — добавляем
 	if len(pr.AssignedReviewers) > 0 {
-		insertReviewerQuery := `INSERT INTO pr_reviewers (pull_request_id, user_id, assigned_at)
-			VALUES ($1, $2, NOW())`
-
+		reviewerInsert := `
+			INSERT INTO pr_reviewers (pull_request_id, user_id, assigned_at)
+			VALUES ($1, $2, NOW())
+		`
 		for _, reviewerID := range pr.AssignedReviewers {
-			if _, err := tx.ExecContext(ctx, insertReviewerQuery, pr.PullRequestID, reviewerID); err != nil {
+			if _, err := tx.ExecContext(ctx, reviewerInsert, pr.PullRequestID, reviewerID); err != nil {
 				return fmt.Errorf("addition reviewer %s: %w", reviewerID, err)
 			}
 		}
@@ -65,7 +85,49 @@ func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *dom
 	return nil
 }
 
-func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID string) (*domain.PullRequest, error) {
+// func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *models.PullRequest) error {
+
+// 	tx, err := prr.db.BeginTxx(ctx, nil)
+// 	if err != nil {
+// 		return fmt.Errorf("beginning transaction create_pull_request: %w", err)
+// 	}
+// 	defer tx.Rollback()
+
+// 	creationPullRequestQuery := `INSERT INTO pull_requests (pull_request_id, pull_request_name, author_id, status, created_at, merged_at)
+// 		VALUES ($1, $2, $3, $4, NOW(), NULL) ON CONFLICT (pull_request_id) DO NOTHING`
+
+// 	res, err := tx.ExecContext(ctx, creationPullRequestQuery, pr.PullRequestID, pr.PullRequestName, pr.AuthorID, pr.Status)
+// 	if err != nil {
+// 		return fmt.Errorf("insert pull request: %w", err)
+// 	}
+
+// 	rows, err := res.RowsAffected()
+// 	if err != nil {
+// 		return fmt.Errorf("rows affected pull_request: %w", err)
+// 	}
+// 	if rows == 0 {
+// 		return resperrors.ErrPullRequestExists
+// 	}
+
+// 	if len(pr.AssignedReviewers) > 0 {
+// 		insertReviewerQuery := `INSERT INTO pr_reviewers (pull_request_id, user_id, assigned_at)
+// 			VALUES ($1, $2, NOW())`
+
+// 		for _, reviewerID := range pr.AssignedReviewers {
+// 			if _, err := tx.ExecContext(ctx, insertReviewerQuery, pr.PullRequestID, reviewerID); err != nil {
+// 				return fmt.Errorf("addition reviewer %s: %w", reviewerID, err)
+// 			}
+// 		}
+// 	}
+
+// 	if err := tx.Commit(); err != nil {
+// 		return fmt.Errorf("commit transaction create_pull_request: %w", err)
+// 	}
+
+// 	return nil
+// }
+
+func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID string) (*models.PullRequest, error) {
 
 	tx, err := prr.db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -79,8 +141,8 @@ func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID
 		WHERE pull_request_id = $2
 		RETURNING pull_request_id, pull_request_name, author_id, status, created_at, merged_at`
 
-	var pr domain.PullRequest
-	if err := tx.GetContext(ctx, &pr, updateQuery, domain.PullRequestMerged, prID); err != nil {
+	var pr models.PullRequest
+	if err := tx.GetContext(ctx, &pr, updateQuery, models.PullRequestMerged, prID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, resperrors.ErrPullRequestNotFound
 		}
@@ -109,7 +171,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(
 	ctx context.Context,
 	prID string,
 	oldUserID string,
-) (*domain.PullRequest, string, error) {
+) (*models.PullRequest, string, error) {
 	tx, err := prr.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, "", fmt.Errorf("beginning transaction reassign_pull_request: %w", err)
@@ -121,7 +183,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(
 		WHERE pull_request_id = $1
 		FOR UPDATE`
 
-	var pr domain.PullRequest
+	var pr models.PullRequest
 	if err := tx.GetContext(ctx, &pr, prQuery, prID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, "", resperrors.ErrPullRequestNotFound
@@ -129,7 +191,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(
 		return nil, "", fmt.Errorf("get pull request: %w", err)
 	}
 
-	if pr.Status == domain.PullRequestMerged {
+	if pr.Status == models.PullRequestMerged {
 		return nil, "", resperrors.ErrPullRequestMerged
 	}
 
@@ -237,21 +299,25 @@ func pickRandomID(ids []string) string {
 	return ids[index]
 }
 
-func (prr *PullRequestRepository) GetPullRequestByReviewerID(ctx context.Context, userID string) ([]*domain.PullRequestShort, error) {
+func (prr *PullRequestRepository) GetPullRequestByReviewerID(ctx context.Context, userID string) ([]*models.PullRequestShort, error) {
 
-	query := `SELECT pr.pull_request_id, pr.pull_request_name, pr.author_id, pr.status, pr.created_at, pr.merged_at
-		FROM pull_requests pr
-		INNER JOIN pr_reviewers prev ON pr.pull_request_id = prev.pull_request_id
-		WHERE prev.user_id = $1
-		ORDER BY pr.created_at DESC`
+	query := `SELECT pr.pull_request_id,
+                 pr.pull_request_name,
+                 pr.author_id,
+                 pr.status
+          FROM pull_requests pr
+          INNER JOIN pr_reviewers prev
+            ON pr.pull_request_id = prev.pull_request_id
+          WHERE prev.user_id = $1
+          ORDER BY pr.created_at DESC`
 
-	var prs []*domain.PullRequestShort
+	var prs []*models.PullRequestShort
 	if err := prr.db.SelectContext(ctx, &prs, query, userID); err != nil {
 		return nil, fmt.Errorf("get pull requests by reviewer %s: %w", userID, err)
 	}
 
 	if prs == nil {
-		prs = []*domain.PullRequestShort{}
+		prs = []*models.PullRequestShort{}
 	}
 
 	return prs, nil

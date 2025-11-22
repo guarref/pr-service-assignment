@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/guarref/pr-service-assignment/internal/domain"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/repository"
 	"github.com/guarref/pr-service-assignment/internal/resperrors"
 )
@@ -17,7 +17,7 @@ func NewUserService(userRepo repository.UserRepository) *UserService {
 	return &UserService{userRepo: userRepo}
 }
 
-func (us *UserService) SetFlagIsActive(ctx context.Context, userID string, isActive bool) (*domain.User, error) {
+func (us *UserService) SetFlagIsActive(ctx context.Context, userID string, isActive bool) (*models.User, error) {
 
 	if userID == "" {
 		return nil, resperrors.ErrBadRequest
@@ -31,7 +31,7 @@ func (us *UserService) SetFlagIsActive(ctx context.Context, userID string, isAct
 	return user, nil
 }
 
-func (us *UserService) GetUserByID(ctx context.Context, userID string) (*domain.User, error) {
+func (us *UserService) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
 
 	if userID == "" {
 		return nil, resperrors.ErrBadRequest
@@ -45,7 +45,7 @@ func (us *UserService) GetUserByID(ctx context.Context, userID string) (*domain.
 	return user, nil
 }
 
-func (us *UserService) GetActiveUsersByTeam(ctx context.Context, teamName string, exceptUserID string) ([]*domain.User, error) {
+func (us *UserService) GetActiveUsersByTeam(ctx context.Context, teamName string, exceptUserID string) ([]*models.User, error) {
 
 	if !IsValidTeamName(teamName) {
 		return nil, resperrors.ErrBadRequest

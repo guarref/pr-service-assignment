@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"unicode"
 
-	"github.com/guarref/pr-service-assignment/internal/domain"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/repository"
 	"github.com/guarref/pr-service-assignment/internal/resperrors"
 )
@@ -18,7 +18,7 @@ func NewTeamService(teamRepo repository.TeamRepository) *TeamService {
 	return &TeamService{teamRepo: teamRepo}
 }
 
-func (ts *TeamService) CreateTeam(ctx context.Context, team *domain.Team) error {
+func (ts *TeamService) CreateTeam(ctx context.Context, team *models.Team) error {
 
 	if !IsValidTeamName(team.TeamName) {
 		return resperrors.ErrBadRequest
@@ -34,7 +34,7 @@ func (ts *TeamService) CreateTeam(ctx context.Context, team *domain.Team) error 
 	return nil
 }
 
-func (ts *TeamService) GetTeamByName(ctx context.Context, teamName string) (*domain.Team, error) {
+func (ts *TeamService) GetTeamByName(ctx context.Context, teamName string) (*models.Team, error) {
 
 	if !IsValidTeamName(teamName) {
 		return nil, resperrors.ErrBadRequest
