@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/guarref/pr-service-assignment/internal/models"
-	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/service"
 	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
@@ -26,10 +25,6 @@ func (h *PullRequestHandler) PostPullRequestCreate(ctx echo.Context) error {
 	if err := ctx.Bind(&body); err != nil {
 		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
 		return ctx.JSON(http.StatusBadRequest, resp)
-	}
-
-	if body.PullRequestId == "" || body.PullRequestName == "" || body.AuthorId == "" {
-		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
 	}
 
 	pr := models.PullRequest{
@@ -60,10 +55,6 @@ func (h *PullRequestHandler) PostPullRequestMerge(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, resp)
 	}
 
-	if body.PullRequestId == "" {
-		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
-	}
-
 	pr, err := h.service.MergePullRequest(ctx.Request().Context(), body.PullRequestId)
 	if err != nil {
 		return mapErrorToHTTPResponse(ctx, err)
@@ -86,10 +77,6 @@ func (h *PullRequestHandler) PostPullRequestReassign(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, resp)
 	}
 
-	if body.PullRequestId == "" || body.OldUserId == "" {
-		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
-	}
-
 	pr, replacedBy, err := h.service.ReassignToPullRequest(ctx.Request().Context(), body.PullRequestId, body.OldUserId)
 	if err != nil {
 		return mapErrorToHTTPResponse(ctx, err)
@@ -110,10 +97,6 @@ func (h *PullRequestHandler) PostPullRequestReassign(ctx echo.Context) error {
 func (h *PullRequestHandler) GetUsersGetReview(ctx echo.Context, params omodels.GetUsersGetReviewParams) error {
 
 	userID := params.UserId
-
-	if userID == "" {
-		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
-	}
 
 	prs, err := h.service.GetPullRequestsByReviewer(ctx.Request().Context(), userID)
 	if err != nil {

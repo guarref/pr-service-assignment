@@ -3,7 +3,6 @@ package web
 import (
 	"net/http"
 
-	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/service"
 	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
@@ -25,10 +24,6 @@ func (h *UserHandler) PostUsersSetIsActive(ctx echo.Context) error {
 	if err := ctx.Bind(&body); err != nil {
 		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
 		return ctx.JSON(http.StatusBadRequest, resp)
-	}
-
-	if body.UserId == "" {
-		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
 	}
 
 	user, err := h.service.SetFlagIsActive(ctx.Request().Context(), body.UserId, body.IsActive)

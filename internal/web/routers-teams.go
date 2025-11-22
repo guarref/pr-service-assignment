@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/guarref/pr-service-assignment/internal/models"
-	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/service"
 	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
@@ -58,10 +57,6 @@ func (h *TeamHandler) PostTeamAdd(ctx echo.Context) error {
 func (h *TeamHandler) GetTeamGet(ctx echo.Context, params omodels.GetTeamGetParams) error {
 
 	teamName := params.TeamName
-
-	if teamName == "" {
-		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
-	}
 
 	team, err := h.service.GetTeamByName(ctx.Request().Context(), teamName)
 	if err != nil {
