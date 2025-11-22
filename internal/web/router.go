@@ -6,8 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// Router – единый тип, реализующий omodels.ServerInterface.
-// Внутри делегирует в TeamHandler / UserHandler / PullRequestHandler.
 type Router struct {
 	teamHandler *TeamHandler
 	userHandler *UserHandler
@@ -50,9 +48,8 @@ func (s *Router) PostUsersSetIsActive(ctx echo.Context) error {
 	return s.userHandler.PostUsersSetIsActive(ctx)
 }
 
-// RegisterRoutes – хелпер, который ты можешь вызывать из main.go.
 func RegisterRoutes(e *echo.Echo, teamSvc *service.TeamService, userSvc *service.UserService, prSvc *service.PullRequestService) {
-	
+
 	server := NewRouter(teamSvc, userSvc, prSvc)
 	omodels.RegisterHandlers(e, server)
 }

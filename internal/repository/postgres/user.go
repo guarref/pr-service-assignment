@@ -39,12 +39,12 @@ func (ur *UserRepository) SetFlagIsActive(ctx context.Context, userID string, is
 
 func (ur *UserRepository) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
 
-	query := `SELECT user_id, username, team_name, is_active, created_at, updated_at
+	userQuery := `SELECT user_id, username, team_name, is_active, created_at, updated_at
 		FROM users
 		WHERE user_id = $1`
 
 	var user models.User
-	if err := ur.db.GetContext(ctx, &user, query, userID); err != nil {
+	if err := ur.db.GetContext(ctx, &user, userQuery, userID); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, resperrors.ErrUserNotFound
 		}
@@ -56,13 +56,13 @@ func (ur *UserRepository) GetUserByID(ctx context.Context, userID string) (*mode
 
 func (ur *UserRepository) GetActiveUsersByTeam(ctx context.Context, teamName string, exceptUserID string) ([]*models.User, error) {
 
-	query := `SELECT user_id, username, team_name, is_active, created_at, updated_at
+	activeUsersQuery := `SELECT user_id, username, team_name, is_active, created_at, updated_at
 		FROM users
 		WHERE team_name = $1 AND is_active = true AND user_id != $2
 		ORDER BY user_id`
 
 	var users []*models.User
-	if err := ur.db.SelectContext(ctx, &users, query, teamName, exceptUserID); err != nil {
+	if err := ur.db.SelectContext(ctx, &users, activeUsersQuery, teamName, exceptUserID); err != nil {
 		return nil, fmt.Errorf("error getting active users: %w", err)
 	}
 

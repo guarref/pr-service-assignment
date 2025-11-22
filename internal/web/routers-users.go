@@ -17,8 +17,9 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
 
-// POST /users/setIsActive
+// /users/setIsActive post
 func (h *UserHandler) PostUsersSetIsActive(ctx echo.Context) error {
+
 	var body omodels.PostUsersSetIsActiveJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
@@ -27,19 +28,17 @@ func (h *UserHandler) PostUsersSetIsActive(ctx echo.Context) error {
 	}
 
 	if body.UserId == "" {
-		return writeDomainError(ctx, resperrors.ErrBadRequest)
+		return mapErrorToHTTPResponse(ctx, resperrors.ErrBadRequest)
 	}
 
 	user, err := h.service.SetFlagIsActive(ctx.Request().Context(), body.UserId, body.IsActive)
 	if err != nil {
-		return writeDomainError(ctx, err)
+		return mapErrorToHTTPResponse(ctx, err)
 	}
 
 	respUser := toOAPIUser(user)
 
 	return ctx.JSON(http.StatusOK, struct {
 		User omodels.User `json:"user"`
-	}{
-		User: respUser,
-	})
+	}{User: respUser})
 }

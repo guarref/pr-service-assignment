@@ -11,9 +11,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// NewErrorResponse – сборка ErrorResponse из кода и сообщения.
 func NewErrorResponse(code omodels.ErrorResponseErrorCode, message string) omodels.ErrorResponse {
-	
+
 	var er omodels.ErrorResponse
 	er.Error.Code = code
 	er.Error.Message = message
@@ -21,24 +20,20 @@ func NewErrorResponse(code omodels.ErrorResponseErrorCode, message string) omode
 	return er
 }
 
-// writeDomainError – единое место, где мы превращаем доменные ошибки в HTTP-ответы.
-func writeDomainError(c echo.Context, err error) error {
-	
+func mapErrorToHTTPResponse(c echo.Context, err error) error {
+
 	if err == nil {
 		return nil
 	}
 
-	// Валидация входных данных – просто 400 с сообщением
 	if errors.Is(err, resperrors.ErrBadRequest) {
 		resp := NewErrorResponse(omodels.NOTFOUND, err.Error())
 		return c.JSON(http.StatusBadRequest, resp)
 	}
 
-	// 409 / 400 — доменные конфликты
 	switch {
 	case errors.Is(err, resperrors.ErrTeamExists):
 		resp := NewErrorResponse(omodels.TEAMEXISTS, "team_name already exists")
-		// В openapi для TEAM_EXISTS стоит 400
 		return c.JSON(http.StatusBadRequest, resp)
 
 	case errors.Is(err, resperrors.ErrPullRequestExists):
@@ -58,7 +53,6 @@ func writeDomainError(c echo.Context, err error) error {
 		return c.JSON(http.StatusConflict, resp)
 	}
 
-	// 404 – любой вид not found
 	if errors.Is(err, resperrors.ErrUserNotFound) ||
 		errors.Is(err, resperrors.ErrTeamNotFound) ||
 		errors.Is(err, resperrors.ErrPullRequestNotFound) {
@@ -66,14 +60,12 @@ func writeDomainError(c echo.Context, err error) error {
 		return c.JSON(http.StatusNotFound, resp)
 	}
 
-	// Фолбэк – 500 с generic сообщением
 	resp := NewErrorResponse(omodels.NOTFOUND, "internal server error")
 	return c.JSON(http.StatusInternalServerError, resp)
 }
 
-// Маппинги домен → openapi
-
 func toOAPITeam(t *models.Team) omodels.Team {
+
 	members := make([]omodels.TeamMember, 0, len(t.Members))
 	for _, m := range t.Members {
 		members = append(members, omodels.TeamMember{
@@ -83,34 +75,21 @@ func toOAPITeam(t *models.Team) omodels.Team {
 		})
 	}
 
-	return omodels.Team{
-		TeamName: t.TeamName,
-		Members:  members,
-	}
+	return omodels.Team{TeamName: t.TeamName, Members: members}
 }
 
 func toOAPIUser(u *models.User) omodels.User {
-	return omodels.User{
-		UserId:   u.UserID,
-		Username: u.UserName,
-		TeamName: u.TeamName,
-		IsActive: u.IsActive,
-	}
+	return omodels.User{UserId: u.UserID, Username: u.UserName, TeamName: u.TeamName, IsActive: u.IsActive}
 }
 
 func toOAPIPullRequest(pr *models.PullRequest) omodels.PullRequest {
-	var createdAt *time.Time
-	if pr.CreatedAt != nil {
-		t := *pr.CreatedAt
-		createdAt = &t
-	}
 
-// MergedAt: *sql.NullTime -> *time.Time
-    var mergedAt *time.Time
-    if pr.MergedAt != nil && pr.MergedAt.Valid {
-        t := pr.MergedAt.Time
-        mergedAt = &t
-    }
+	var mergedAt *time.Time
+	if pr.MergedAt != nil {
+		t := *pr.MergedAt
+		mergedAt = &t
+	}
+	createdAt := pr.CreatedAt
 
 	return omodels.PullRequest{
 		PullRequestId:     pr.PullRequestID,
@@ -118,7 +97,7 @@ func toOAPIPullRequest(pr *models.PullRequest) omodels.PullRequest {
 		AuthorId:          pr.AuthorID,
 		Status:            omodels.PullRequestStatus(pr.Status),
 		AssignedReviewers: append([]string(nil), pr.AssignedReviewers...),
-		CreatedAt:         createdAt,
+		CreatedAt:         &createdAt,
 		MergedAt:          mergedAt,
 	}
 }
@@ -133,6 +112,7 @@ func toOAPIPullRequestShort(pr *models.PullRequestShort) omodels.PullRequestShor
 }
 
 func toOAPIPullRequestShortList(prs []*models.PullRequestShort) []omodels.PullRequestShort {
+
 	result := make([]omodels.PullRequestShort, 0, len(prs))
 	for _, pr := range prs {
 		result = append(result, toOAPIPullRequestShort(pr))

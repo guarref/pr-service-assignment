@@ -22,17 +22,16 @@ func NewPullRequestService(prRepo repository.PullRequestRepository, userRepo rep
 }
 
 func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
+	
 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
 		return nil, resperrors.ErrBadRequest
 	}
 
 	author, err := prs.userRepo.GetUserByID(ctx, pr.AuthorID)
 	if err != nil {
-		// тут либо ErrUserNotFound, либо другая ошибка — обе оборачиваем
 		return nil, fmt.Errorf("error getting author with id %s: %w", pr.AuthorID, err)
 	}
 
-	// активные ревьюверы из команды автора, исключая самого автора
 	activeUsers, err := prs.userRepo.GetActiveUsersByTeam(ctx, author.TeamName, author.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting active users for team %s: %w", author.TeamName, err)
@@ -50,6 +49,7 @@ func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models
 }
 
 func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string) (*models.PullRequest, error) {
+	
 	if prID == "" {
 		return nil, resperrors.ErrBadRequest
 	}
@@ -63,6 +63,7 @@ func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string
 }
 
 func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*models.PullRequest, string, error) {
+	
 	if prID == "" || oldUserID == "" {
 		return nil, "", resperrors.ErrBadRequest
 	}
@@ -76,6 +77,7 @@ func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID s
 }
 
 func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, userID string) ([]*models.PullRequestShort, error) {
+	
 	if userID == "" {
 		return nil, resperrors.ErrBadRequest
 	}
@@ -89,6 +91,7 @@ func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, us
 }
 
 func randomUserSelection(activeUsers []*models.User, num int) []string {
+	
 	if len(activeUsers) == 0 {
 		return []string{}
 	}

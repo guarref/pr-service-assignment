@@ -24,41 +24,42 @@ func (tr *TeamRepository) CreateTeam(ctx context.Context, team *models.Team) err
 
 	tx, err := tr.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("begining transaction team: %w", err)
+		return fmt.Errorf("error begining transaction team: %w", err)
 	}
 	defer tx.Rollback()
 
 	var isExists bool
 	checkTeamQuery := `SELECT EXISTS(SELECT 1 FROM teams WHERE team_name = $1)`
+
 	if err := tx.GetContext(ctx, &isExists, checkTeamQuery, team.TeamName); err != nil {
-		return fmt.Errorf("checking for team existence: %w", err)
+		return fmt.Errorf("error checking for team existence: %w", err)
 	}
 	if isExists {
 		return resperrors.ErrTeamExists
 	}
 
-	// создание команды
 	creationTeamQuery := `INSERT INTO teams (team_name, created_at, updated_at) VALUES ($1, NOW(), NOW())`
+
 	if _, err := tx.ExecContext(ctx, creationTeamQuery, team.TeamName); err != nil {
-		return fmt.Errorf("team creation: %w", err)
+		return fmt.Errorf("error team creation: %w", err)
 	}
 
-	// добавление юзеров
 	additionUserQuery := `INSERT INTO users (user_id, username, team_name, is_active, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, NOW(), NOW()) ON CONFLICT (user_id) DO UPDATE SET
-			username   = EXCLUDED.username,
-			team_name  = EXCLUDED.team_name,
-			is_active  = EXCLUDED.is_active,
-			updated_at = NOW()`
+		VALUES ($1, $2, $3, $4, NOW(), NOW()) ON CONFLICT (user_id) 
+		DO UPDATE SET
+		username   = EXCLUDED.username,
+		team_name  = EXCLUDED.team_name,
+		is_active  = EXCLUDED.is_active,
+		updated_at = NOW()`
 
 	for _, m := range team.Members {
 		if _, err := tx.ExecContext(ctx, additionUserQuery, m.UserID, m.UserName, team.TeamName, m.IsActive); err != nil {
-			return fmt.Errorf("addition user %s: %w", m.UserID, err)
+			return fmt.Errorf("error addition user with id %s: %w", m.UserID, err)
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction team: %w", err)
+		return fmt.Errorf("error committing transaction team: %w", err)
 	}
 
 	return nil
@@ -76,7 +77,7 @@ func (tr *TeamRepository) GetTeamByName(ctx context.Context, teamName string) (*
 		if err == sql.ErrNoRows {
 			return nil, resperrors.ErrTeamNotFound
 		}
-		return nil, fmt.Errorf("get team: %w", err)
+		return nil, fmt.Errorf("error gettig team: %w", err)
 	}
 
 	membersQuery := `SELECT user_id, username, is_active
@@ -86,7 +87,7 @@ func (tr *TeamRepository) GetTeamByName(ctx context.Context, teamName string) (*
 
 	var members []models.TeamMember
 	if err := tr.db.SelectContext(ctx, &members, membersQuery, teamName); err != nil {
-		return nil, fmt.Errorf("get team members: %w", err)
+		return nil, fmt.Errorf("error getting team members: %w", err)
 	}
 	team.Members = members
 

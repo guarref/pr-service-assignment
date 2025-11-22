@@ -58,7 +58,7 @@ func (a *App) Run(ctx context.Context) error {
 
 	go func() {
 		addr := fmt.Sprintf(":%d", a.cfg.Port)
-		fmt.Printf("server starting on port%s\n", addr)
+		fmt.Printf("SERVER is starting on port%s\n", addr)
 
 		err := a.echo.Start(addr)
 		if err != nil && err != http.ErrServerClosed {

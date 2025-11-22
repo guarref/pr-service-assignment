@@ -18,8 +18,9 @@ func NewPullRequestHandler(s *service.PullRequestService) *PullRequestHandler {
 	return &PullRequestHandler{service: s}
 }
 
-// POST /pullRequest/create
+// /pullRequest/create post
 func (h *PullRequestHandler) PostPullRequestCreate(ctx echo.Context) error {
+
 	var body omodels.PostPullRequestCreateJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
@@ -28,7 +29,7 @@ func (h *PullRequestHandler) PostPullRequestCreate(ctx echo.Context) error {
 	}
 
 	if body.PullRequestId == "" || body.PullRequestName == "" || body.AuthorId == "" {
-		return writeDomainError(ctx, resperrors.ErrBadRequest)
+		return mapErrorToHTTPResponse(ctx, resperrors.ErrBadRequest)
 	}
 
 	pr := models.PullRequest{
@@ -39,20 +40,19 @@ func (h *PullRequestHandler) PostPullRequestCreate(ctx echo.Context) error {
 
 	created, err := h.service.CreatePullRequest(ctx.Request().Context(), &pr)
 	if err != nil {
-		return writeDomainError(ctx, err)
+		return mapErrorToHTTPResponse(ctx, err)
 	}
 
 	respPR := toOAPIPullRequest(created)
 
 	return ctx.JSON(http.StatusCreated, struct {
 		PR omodels.PullRequest `json:"pr"`
-	}{
-		PR: respPR,
-	})
+	}{PR: respPR})
 }
 
-// POST /pullRequest/merge
+// /pullRequest/merge post
 func (h *PullRequestHandler) PostPullRequestMerge(ctx echo.Context) error {
+
 	var body omodels.PostPullRequestMergeJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
@@ -61,25 +61,24 @@ func (h *PullRequestHandler) PostPullRequestMerge(ctx echo.Context) error {
 	}
 
 	if body.PullRequestId == "" {
-		return writeDomainError(ctx, resperrors.ErrBadRequest)
+		return mapErrorToHTTPResponse(ctx, resperrors.ErrBadRequest)
 	}
 
 	pr, err := h.service.MergePullRequest(ctx.Request().Context(), body.PullRequestId)
 	if err != nil {
-		return writeDomainError(ctx, err)
+		return mapErrorToHTTPResponse(ctx, err)
 	}
 
 	respPR := toOAPIPullRequest(pr)
 
 	return ctx.JSON(http.StatusOK, struct {
 		PR omodels.PullRequest `json:"pr"`
-	}{
-		PR: respPR,
-	})
+	}{PR: respPR})
 }
 
-// POST /pullRequest/reassign
+// /pullRequest/reassign post
 func (h *PullRequestHandler) PostPullRequestReassign(ctx echo.Context) error {
+
 	var body omodels.PostPullRequestReassignJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
@@ -88,35 +87,37 @@ func (h *PullRequestHandler) PostPullRequestReassign(ctx echo.Context) error {
 	}
 
 	if body.PullRequestId == "" || body.OldUserId == "" {
-		return writeDomainError(ctx, resperrors.ErrBadRequest)
+		return mapErrorToHTTPResponse(ctx, resperrors.ErrBadRequest)
 	}
 
 	pr, replacedBy, err := h.service.ReassignToPullRequest(ctx.Request().Context(), body.PullRequestId, body.OldUserId)
 	if err != nil {
-		return writeDomainError(ctx, err)
+		return mapErrorToHTTPResponse(ctx, err)
 	}
 
 	respPR := toOAPIPullRequest(pr)
 
 	return ctx.JSON(http.StatusOK, struct {
 		PR         omodels.PullRequest `json:"pr"`
-		ReplacedBy string               `json:"replaced_by"`
+		ReplacedBy string              `json:"replaced_by"`
 	}{
 		PR:         respPR,
 		ReplacedBy: replacedBy,
 	})
 }
 
-// GET /users/getReview
+// /users/getReview get
 func (h *PullRequestHandler) GetUsersGetReview(ctx echo.Context, params omodels.GetUsersGetReviewParams) error {
+
 	userID := params.UserId
+
 	if userID == "" {
-		return writeDomainError(ctx, resperrors.ErrBadRequest)
+		return mapErrorToHTTPResponse(ctx, resperrors.ErrBadRequest)
 	}
 
 	prs, err := h.service.GetPullRequestsByReviewer(ctx.Request().Context(), userID)
 	if err != nil {
-		return writeDomainError(ctx, err)
+		return mapErrorToHTTPResponse(ctx, err)
 	}
 
 	respList := toOAPIPullRequestShortList(prs)

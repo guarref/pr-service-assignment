@@ -18,8 +18,9 @@ func NewTeamHandler(s *service.TeamService) *TeamHandler {
 	return &TeamHandler{service: s}
 }
 
-// POST /team/add
+// /team/add post
 func (h *TeamHandler) PostTeamAdd(ctx echo.Context) error {
+
 	var body omodels.PostTeamAddJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
@@ -41,7 +42,7 @@ func (h *TeamHandler) PostTeamAdd(ctx echo.Context) error {
 	}
 
 	if err := h.service.CreateTeam(ctx.Request().Context(), &team); err != nil {
-		return writeDomainError(ctx, err)
+		return mapErrorToHTTPResponse(ctx, err)
 	}
 
 	respTeam := toOAPITeam(&team)
@@ -53,16 +54,18 @@ func (h *TeamHandler) PostTeamAdd(ctx echo.Context) error {
 	})
 }
 
-// GET /team/get
+// /team/get get
 func (h *TeamHandler) GetTeamGet(ctx echo.Context, params omodels.GetTeamGetParams) error {
+
 	teamName := params.TeamName
+
 	if teamName == "" {
-		return writeDomainError(ctx, resperrors.ErrBadRequest)
+		return mapErrorToHTTPResponse(ctx, resperrors.ErrBadRequest)
 	}
 
 	team, err := h.service.GetTeamByName(ctx.Request().Context(), teamName)
 	if err != nil {
-		return writeDomainError(ctx, err)
+		return mapErrorToHTTPResponse(ctx, err)
 	}
 
 	respTeam := toOAPITeam(team)

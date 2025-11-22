@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"time"
 )
 
@@ -19,8 +18,8 @@ type PullRequest struct {
 	Status            PullRequestStatus `json:"status" db:"status"`
 	AssignedReviewers []string          `json:"assigned_reviewers" db:"-"`
 
-	CreatedAt *time.Time    `json:"createdAt,omitempty" db:"created_at"`
-	MergedAt  *sql.NullTime `json:"mergedAt,omitempty" db:"merged_at"`
+	CreatedAt time.Time  `json:"createdAt" db:"created_at"`
+	MergedAt  *time.Time `json:"mergedAt,omitempty" db:"merged_at"`
 }
 
 type PullRequestShort struct {
