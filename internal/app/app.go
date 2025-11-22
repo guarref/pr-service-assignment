@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/guarref/pr-service-assignment/config"
 	pg "github.com/guarref/pr-service-assignment/pkg/postgres"
@@ -46,6 +47,9 @@ func New(ctx context.Context, cfg *config.Config) (*App, error) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
+	
+	e.Use(middleware.Recover())
+	e.Use(web.AccessLogMiddleware)
 
 	web.RegisterRoutes(e, teamSvc, userSvc, prSvc)
 

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/errs"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
 )
@@ -26,41 +26,40 @@ func mapErrorToHTTPResponse(c echo.Context, err error) error {
 		return nil
 	}
 
-	if errors.Is(err, errs.ErrBadRequest) {
-		resp := NewErrorResponse(omodels.NOTFOUND, err.Error())
-		return c.JSON(http.StatusBadRequest, resp)
-	}
+	var respErr *errs.RespError
+	if errors.As(err, &respErr) {
+		var code omodels.ErrorResponseErrorCode
 
-	switch {
-	case errors.Is(err, errs.ErrTeamExists):
-		resp := NewErrorResponse(omodels.TEAMEXISTS, "team_name already exists")
-		return c.JSON(http.StatusBadRequest, resp)
+		switch respErr {
+		case errs.ErrTeamExists:
+			code = omodels.TEAMEXISTS
+		case errs.ErrPullRequestExists:
+			code = omodels.PREXISTS
+		case errs.ErrPullRequestMerged:
+			code = omodels.PRMERGED
+		case errs.ErrNotAssigned:
+			code = omodels.NOTASSIGNED
+		case errs.ErrNoCandidate:
+			code = omodels.NOCANDIDATE
 
-	case errors.Is(err, errs.ErrPullRequestExists):
-		resp := NewErrorResponse(omodels.PREXISTS, "PR id already exists")
-		return c.JSON(http.StatusConflict, resp)
+		case errs.ErrTeamNotFound,
+			errs.ErrUserNotFound,
+			errs.ErrPullRequestNotFound,
+			errs.ErrNotFound:
+			code = omodels.NOTFOUND
 
-	case errors.Is(err, errs.ErrPullRequestMerged):
-		resp := NewErrorResponse(omodels.PRMERGED, "cannot reassign on merged PR")
-		return c.JSON(http.StatusConflict, resp)
+		case errs.ErrBadRequest,
+			errs.ErrInvalidJSON:
 
-	case errors.Is(err, errs.ErrNotAssigned):
-		resp := NewErrorResponse(omodels.NOTASSIGNED, "reviewer is not assigned to this PR")
-		return c.JSON(http.StatusConflict, resp)
+			code = omodels.NOTFOUND
+		}
 
-	case errors.Is(err, errs.ErrNoCandidate):
-		resp := NewErrorResponse(omodels.NOCANDIDATE, "no active replacement candidate in team")
-		return c.JSON(http.StatusConflict, resp)
-	}
-
-	if errors.Is(err, errs.ErrUserNotFound) ||
-		errors.Is(err, errs.ErrTeamNotFound) ||
-		errors.Is(err, errs.ErrPullRequestNotFound) {
-		resp := NewErrorResponse(omodels.NOTFOUND, "resource not found")
-		return c.JSON(http.StatusNotFound, resp)
+		resp := NewErrorResponse(code, respErr.Message)
+		return c.JSON(respErr.StatusCode, resp)
 	}
 
 	resp := NewErrorResponse(omodels.NOTFOUND, "internal server error")
+
 	return c.JSON(http.StatusInternalServerError, resp)
 }
 
@@ -79,7 +78,12 @@ func toOAPITeam(t *models.Team) omodels.Team {
 }
 
 func toOAPIUser(u *models.User) omodels.User {
-	return omodels.User{UserId: u.UserID, Username: u.UserName, TeamName: u.TeamName, IsActive: u.IsActive}
+	return omodels.User{
+		UserId:   u.UserID,
+		Username: u.UserName,
+		TeamName: u.TeamName,
+		IsActive: u.IsActive,
+	}
 }
 
 func toOAPIPullRequest(pr *models.PullRequest) omodels.PullRequest {
@@ -89,6 +93,7 @@ func toOAPIPullRequest(pr *models.PullRequest) omodels.PullRequest {
 		t := *pr.MergedAt
 		mergedAt = &t
 	}
+
 	createdAt := pr.CreatedAt
 
 	return omodels.PullRequest{
@@ -117,5 +122,6 @@ func toOAPIPullRequestShortList(prs []*models.PullRequestShort) []omodels.PullRe
 	for _, pr := range prs {
 		result = append(result, toOAPIPullRequestShort(pr))
 	}
+
 	return result
 }
