@@ -1,4 +1,3 @@
-// internal/service/pull_request.go
 package service
 
 import (
