@@ -6,7 +6,7 @@ import (
 
 	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/repository"
-	"github.com/guarref/pr-service-assignment/internal/errors"
+	"github.com/guarref/pr-service-assignment/internal/errs"
 )
 
 type UserService struct {
@@ -20,7 +20,7 @@ func NewUserService(userRepo repository.UserRepository) *UserService {
 func (us *UserService) SetFlagIsActive(ctx context.Context, userID string, isActive bool) (*models.User, error) {
 
 	if userID == "" {
-		return nil, errors.ErrBadRequest
+		return nil, errs.ErrBadRequest
 	}
 
 	user, err := us.userRepo.SetFlagIsActive(ctx, userID, isActive)
@@ -34,7 +34,7 @@ func (us *UserService) SetFlagIsActive(ctx context.Context, userID string, isAct
 func (us *UserService) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
 
 	if userID == "" {
-		return nil, errors.ErrBadRequest
+		return nil, errs.ErrBadRequest
 	}
 
 	user, err := us.userRepo.GetUserByID(ctx, userID)
@@ -48,7 +48,7 @@ func (us *UserService) GetUserByID(ctx context.Context, userID string) (*models.
 func (us *UserService) GetActiveUsersByTeam(ctx context.Context, teamName string, exceptUserID string) ([]*models.User, error) {
 
 	if !IsValidTeamName(teamName) {
-		return nil, errors.ErrBadRequest
+		return nil, errs.ErrBadRequest
 	}
 
 	users, err := us.userRepo.GetActiveUsersByTeam(ctx, teamName, exceptUserID)

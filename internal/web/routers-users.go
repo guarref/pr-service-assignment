@@ -3,7 +3,7 @@ package web
 import (
 	"net/http"
 
-	"github.com/guarref/pr-service-assignment/internal/errors"
+	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/service"
 	"github.com/guarref/pr-service-assignment/internal/web/omodels"
 	"github.com/labstack/echo/v4"
@@ -28,7 +28,7 @@ func (h *UserHandler) PostUsersSetIsActive(ctx echo.Context) error {
 	}
 
 	if body.UserId == "" {
-		return mapErrorToHTTPResponse(ctx, errors.ErrBadRequest)
+		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
 	}
 
 	user, err := h.service.SetFlagIsActive(ctx.Request().Context(), body.UserId, body.IsActive)

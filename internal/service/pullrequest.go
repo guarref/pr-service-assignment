@@ -8,7 +8,7 @@ import (
 
 	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/repository"
-	"github.com/guarref/pr-service-assignment/internal/errors"
+	"github.com/guarref/pr-service-assignment/internal/errs"
 )
 
 type PullRequestService struct {
@@ -23,7 +23,7 @@ func NewPullRequestService(prRepo repository.PullRequestRepository, userRepo rep
 // func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
 	
 // 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
-// 		return nil, errors.ErrBadRequest
+// 		return nil, errs.ErrBadRequest
 // 	}
 
 // 	author, err := prs.userRepo.GetUserByID(ctx, pr.AuthorID)
@@ -50,7 +50,7 @@ func NewPullRequestService(prRepo repository.PullRequestRepository, userRepo rep
 func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
 	
 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
-		return nil, errors.ErrBadRequest
+		return nil, errs.ErrBadRequest
 	}
 
 	author, err := prs.userRepo.GetUserByID(ctx, pr.AuthorID)
@@ -82,7 +82,7 @@ func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models
 func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string) (*models.PullRequest, error) {
 	
 	if prID == "" {
-		return nil, errors.ErrBadRequest
+		return nil, errs.ErrBadRequest
 	}
 
 	pr, err := prs.prRepo.MergePullRequestByID(ctx, prID)
@@ -96,7 +96,7 @@ func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string
 func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*models.PullRequest, string, error) {
 	
 	if prID == "" || oldUserID == "" {
-		return nil, "", errors.ErrBadRequest
+		return nil, "", errs.ErrBadRequest
 	}
 
 	pr, newReviewerID, err := prs.prRepo.ReassignToPullRequest(ctx, prID, oldUserID)
@@ -110,7 +110,7 @@ func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID s
 func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, userID string) ([]*models.PullRequestShort, error) {
 	
 	if userID == "" {
-		return nil, errors.ErrBadRequest
+		return nil, errs.ErrBadRequest
 	}
 
 	prsList, err := prs.prRepo.GetPullRequestByReviewerID(ctx, userID)

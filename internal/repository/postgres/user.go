@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/guarref/pr-service-assignment/internal/models"
-	"github.com/guarref/pr-service-assignment/internal/errors"
+	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -29,7 +29,7 @@ func (ur *UserRepository) SetFlagIsActive(ctx context.Context, userID string, is
 	err := ur.db.GetContext(ctx, &user, flagQuery, userID, isActive)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.ErrUserNotFound
+			return nil, errs.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("error updating is_active field: %w", err)
 	}
@@ -46,7 +46,7 @@ func (ur *UserRepository) GetUserByID(ctx context.Context, userID string) (*mode
 	var user models.User
 	if err := ur.db.GetContext(ctx, &user, userQuery, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.ErrUserNotFound
+			return nil, errs.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("error getting user: %w", err)
 	}

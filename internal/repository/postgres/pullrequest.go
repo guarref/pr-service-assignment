@@ -7,7 +7,7 @@ import (
 	"math/rand"
 
 	"github.com/guarref/pr-service-assignment/internal/models"
-	"github.com/guarref/pr-service-assignment/internal/errors"
+	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -38,7 +38,7 @@ func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *mod
 	err = tx.GetContext(ctx, &newPR, creationPullRequestQuery, pr.PullRequestID, pr.PullRequestName, pr.AuthorID, pr.Status)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.ErrPullRequestExists
+			return nil, errs.ErrPullRequestExists
 		}
 		return nil, fmt.Errorf("error pull request creation: %w", err)
 	}
@@ -80,7 +80,7 @@ func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID
 	var pr models.PullRequest
 	if err := tx.GetContext(ctx, &pr, updateQuery, models.PullRequestMerged, prID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errors.ErrPullRequestNotFound
+			return nil, errs.ErrPullRequestNotFound
 		}
 		return nil, fmt.Errorf("error updating pull request status to MERGED: %w", err)
 	}
@@ -119,13 +119,13 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 	var pr models.PullRequest
 	if err := tx.GetContext(ctx, &pr, prQuery, prID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, "", errors.ErrPullRequestNotFound
+			return nil, "", errs.ErrPullRequestNotFound
 		}
 		return nil, "", fmt.Errorf("error getting pull request: %w", err)
 	}
 
 	if pr.Status == models.PullRequestMerged {
-		return nil, "", errors.ErrPullRequestMerged
+		return nil, "", errs.ErrPullRequestMerged
 	}
 
 	checkReviewerQuery := `SELECT EXISTS(SELECT 1 FROM pr_reviewers
@@ -136,7 +136,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 		return nil, "", fmt.Errorf("error checking reviewer assigned: %w", err)
 	}
 	if !isAssigned {
-		return nil, "", errors.ErrNotAssigned
+		return nil, "", errs.ErrNotAssigned
 	}
 
 	teamQuery := `SELECT team_name
@@ -146,7 +146,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 	var oldUserTeam string
 	if err := tx.GetContext(ctx, &oldUserTeam, teamQuery, oldUserID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, "", errors.ErrUserNotFound
+			return nil, "", errs.ErrUserNotFound
 		}
 		return nil, "", fmt.Errorf("error getting old user team: %w", err)
 	}
@@ -183,7 +183,7 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 	}
 
 	if len(accessible) == 0 {
-		return nil, "", errors.ErrNoCandidate
+		return nil, "", errs.ErrNoCandidate
 	}
 
 	newReviewerID := getRandomID(accessible)

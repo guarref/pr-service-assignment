@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"unicode"
 
+	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/repository"
-	"github.com/guarref/pr-service-assignment/internal/errors"
 )
 
 type TeamService struct {
@@ -21,10 +21,10 @@ func NewTeamService(teamRepo repository.TeamRepository) *TeamService {
 func (ts *TeamService) CreateTeam(ctx context.Context, team *models.Team) error {
 
 	if !IsValidTeamName(team.TeamName) {
-		return errors.ErrBadRequest
+		return errs.ErrBadRequest
 	}
 	if len(team.Members) == 0 {
-		return errors.ErrBadRequest
+		return errs.ErrBadRequest
 	}
 
 	if err := ts.teamRepo.CreateTeam(ctx, team); err != nil {
@@ -37,7 +37,7 @@ func (ts *TeamService) CreateTeam(ctx context.Context, team *models.Team) error 
 func (ts *TeamService) GetTeamByName(ctx context.Context, teamName string) (*models.Team, error) {
 
 	if !IsValidTeamName(teamName) {
-		return nil, errors.ErrBadRequest
+		return nil, errs.ErrBadRequest
 	}
 
 	team, err := ts.teamRepo.GetTeamByName(ctx, teamName)
