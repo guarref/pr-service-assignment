@@ -33,7 +33,6 @@ func NewPDB(dsn string) (*PDB, error) {
 	return &PDB{DB: db}, nil
 }
 
-// Close — корректное закрытие
 func (db *PDB) Close() error {
 	if db == nil || db.DB == nil {
 		return nil
