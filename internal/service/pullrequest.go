@@ -20,33 +20,6 @@ func NewPullRequestService(prRepo repository.PullRequestRepository, userRepo rep
 	return &PullRequestService{prRepo: prRepo, userRepo: userRepo}
 }
 
-// func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
-
-// 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
-// 		return nil, errs.ErrBadRequest
-// 	}
-
-// 	author, err := prs.userRepo.GetUserByID(ctx, pr.AuthorID)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error getting author with id %s: %w", pr.AuthorID, err)
-// 	}
-
-// 	activeUsers, err := prs.userRepo.GetActiveUsersByTeam(ctx, author.TeamName, author.UserID)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error getting active users for team %s: %w", author.TeamName, err)
-// 	}
-
-// 	reviewers := randomUserSelection(activeUsers, 2)
-// 	pr.AssignedReviewers = reviewers
-// 	pr.Status = models.PullRequestOpen
-
-// 	if err := prs.prRepo.CreatePullRequest(ctx, pr); err != nil {
-// 		return nil, fmt.Errorf("error creating pull request with id %s: %w", pr.PullRequestID, err)
-// 	}
-
-// 	return pr, nil
-// }
-
 func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
 
 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {

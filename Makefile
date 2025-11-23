@@ -1,7 +1,5 @@
-# Makefile
-
 # переменные
-DB_DSN := "postgres://postgres:PostgresPass@localhost:5432/prservice?sslmode=disable"
+DB_DSN := "postgres://postgres:PostgresPass@db:5432/prservice?sslmode=disable"
 MIGRATE := migrate -path ./migrations -database $(DB_DSN)
 
 OPENAPI_FILE=api/openapi.yml
@@ -10,38 +8,26 @@ OPENAPI_GEN_PACKAGE=omodels
 
 .PHONY: help migrate-new migrate migrate-down migrate-force generate-openapi run build docker-up docker-down
 
-# кодогенерация
 generate-openapi:
 	oapi-codegen -generate types,server -package $(OPENAPI_GEN_PACKAGE) -o $(OPENAPI_GEN_OUTPUT) $(OPENAPI_FILE)
 
-# таргет для создания новой миграции
-migrate-new: 
-	migrate create -ext sql -dir ./migrations -seq $(NAME)
-
-# применить все миграции
 migrate:
 	$(MIGRATE) up
 
-# откатить все миграции
 migrate-down-all:
 	$(MIGRATE) down
 
-# локальный запуск приложения
 run: 
 	go run cmd/app/main.go
 
-# сборка бинарника
-build: ## Собрать бинарник
-	go build -o bin/prservice cmd/app/main.go
-
-# поднять docker-compose
 docker-up:
 	docker-compose up --build -d
 
-## остановить docker-compose
 docker-down: 
 	docker-compose down
 
-# запуск линтера
+load-tests:
+	k6 run ./k6.js
+
 lint: 
 	golangci-lint run
