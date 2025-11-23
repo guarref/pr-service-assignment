@@ -20,7 +20,6 @@ function makePullRequestId(vuId) {
   );
 }
 
-// Создание команды и пользователей
 function createTeamIfNeeded() {
   const payload = {
     team_name: TEAM_NAME,
@@ -45,7 +44,6 @@ function createTeamIfNeeded() {
   });
 }
 
-// Создать pull request
 function createPullRequest(prId) {
   const payload = {
     pull_request_id: prId,
@@ -68,7 +66,6 @@ function createPullRequest(prId) {
   return res;
 }
 
-// Замержить pull request
 function mergePullRequest(prId) {
   const payload = {
     pull_request_id: prId,
@@ -89,7 +86,6 @@ function mergePullRequest(prId) {
   return res;
 }
 
-// Получить список PR, где пользователь — ревьюер
 function getReviewForUser(userId) {
   const res = http.get(
     `${BASE_URL}/users/getReview?user_id=${userId}`,
@@ -102,31 +98,21 @@ function getReviewForUser(userId) {
   return res;
 }
 
-// =========================
-// setup и основной сценарий
-// =========================
-
-// Выполняется один раз перед запуском VU
 export function setup() {
   createTeamIfNeeded();
   return {};
 }
 
-// Основной сценарий, выполняется каждым VU в цикле
 export default function () {
   const prId = makePullRequestId(__VU);
 
-  // 1) Создаём PR
   createPullRequest(prId);
 
-  // 2) В части случаев мержим тот же PR
   if (Math.random() < 0.5) {
     mergePullRequest(prId);
   }
 
-  // 3) Получаем список PR для одного из ревьюеров
   getReviewForUser("u2");
 
-  // Небольшая пауза между итерациями
   sleep(0.1);
 }
