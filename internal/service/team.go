@@ -53,10 +53,12 @@ func IsValidTeamName(name string) bool {
 	if name == "" {
 		return false
 	}
-	for _, let := range name {
-		if !unicode.IsLetter(let) {
-			return false
+
+	for _, r := range name {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-' {
+			continue
 		}
+		return false
 	}
 
 	return true

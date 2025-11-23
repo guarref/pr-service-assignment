@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"math/rand"
+	"time"
 
-	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/errs"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -44,8 +45,7 @@ func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *mod
 	}
 
 	if len(pr.AssignedReviewers) > 0 {
-		reviewerIns := `INSERT INTO pr_reviewers (pull_request_id, user_id, assigned_at)
-			VALUES ($1, $2, NOW())`
+		reviewerIns := `INSERT INTO pr_reviewers (pull_request_id, user_id, assigned_at) VALUES ($1, $2, NOW())`
 
 		for _, reviewerID := range pr.AssignedReviewers {
 			if _, err := tx.ExecContext(ctx, reviewerIns, newPR.PullRequestID, reviewerID); err != nil {
@@ -54,7 +54,16 @@ func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *mod
 		}
 	}
 
-	newPR.AssignedReviewers = append([]string(nil), pr.AssignedReviewers...)
+	reviewersQuery := `SELECT user_id
+		FROM pr_reviewers
+		WHERE pull_request_id = $1
+		ORDER BY assigned_at`
+
+	var reviewers []string
+	if err := tx.SelectContext(ctx, &reviewers, reviewersQuery, newPR.PullRequestID); err != nil {
+		return nil, fmt.Errorf("error getting pull request reviewers: %w", err)
+	}
+	newPR.AssignedReviewers = reviewers
 
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit transaction create_pull_request: %w", err)
@@ -223,9 +232,8 @@ func getRandomID(ids []string) string {
 		return ids[0]
 	}
 
-	index := rand.Intn(len(ids))
-
-	return ids[index]
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return ids[r.Intn(len(ids))]
 }
 
 func (prr *PullRequestRepository) GetPullRequestByReviewerID(ctx context.Context, userID string) ([]*models.PullRequestShort, error) {
