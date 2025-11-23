@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pr-service-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: PostgresPass
+      POSTGRES_DB: prservice
+    ports:
+      - "5432:5432"
+    volumes:
+      - pr_service_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pr-service-app
+    depends_on:
+      - db
+    environment:
+      PORT: 8080
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: PostgresPass
+      DB_NAME: prservice
+      MIGRATE_ENABLE: "true"
+      MIGRATE_FOLDER: "./migrations"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  pr_service_db_data:

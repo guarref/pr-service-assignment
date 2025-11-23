@@ -8,17 +8,16 @@ import (
 )
 
 type Config struct {
-	
-	Port int `env:"PORT" envDefault:"8080"`
+	Port int `env:"PORT"`
 
-	DBHost     string `env:"DB_HOST" envDefault:"localhost"`
-	DBPort     string `env:"DB_PORT" envDefault:"5432"`
-	DBUser     string `env:"DB_USER" envDefault:"postgres"`
-	DBPassword string `env:"DB_PASSWORD" envDefault:"PostgresPass"`
-	DBName     string `env:"DB_NAME" envDefault:"prservice"`
+	DBHost     string `env:"DB_HOST"`
+	DBPort     string `env:"DB_PORT"`
+	DBUser     string `env:"DB_USER"`
+	DBPassword string `env:"DB_PASSWORD"`
+	DBName     string `env:"DB_NAME"`
 
-	MigrateEnable bool   `env:"MIGRATE_ENABLE" envDefault:"true"`
-	MigrateFolder string `env:"MIGRATE_FOLDER" envDefault:"./migrations"`
+	MigrateEnable bool   `env:"MIGRATE_ENABLE"`
+	MigrateFolder string `env:"MIGRATE_FOLDER"`
 }
 
 func Load() (*Config, error) {
