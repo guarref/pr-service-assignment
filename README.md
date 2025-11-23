@@ -55,7 +55,11 @@ make run
 ### Тестирование
 
 ```bash
-make load-test        # Запуск нагрузочного тестирование (для запуска требуется k6)
+make load-tests        # Запуск нагрузочного тестирование (для запуска требуется k6)
+```
+
+```bash
+make integration-tests        # Запуск нагрузочного тестирование (для запуска требуется k6)
 ```
 
 ### Линтер
@@ -103,47 +107,58 @@ make lint         # Запуск golangci-lint
 │
 ├── internal
 │   ├── app
-│   │   └── app.go                        # сборка всех зависимостей (db, repos, services, router)
+│   │   └── app.go                              # сборка всех зависимостей (db, repos, services, router)
 │   │
-│   ├── errs                              # работа с ошибками
-│   │   └── errors.go                     # Errors
+│   ├── errs                                    # работа с ошибками
+│   │   └── errors.go                           # Errors
 │   │
-│   ├── models                            # работа с моделями
-│   │   ├── team.go                       # Team
-│   │   ├── user.go                       # User
-│   │   ├── stats.go                      # Stats
-│   │   └── pullrequest.go                # PullRequest
+│   ├── models                                  # работа с моделями
+│   │   ├── team.go                             # Team
+│   │   ├── user.go                             # User
+│   │   ├── stats.go                            # Stats
+│   │   └── pullrequest.go                      # PullRequest
 │   │
-│   ├── repository                        # работа с репозиториями
-│   │   ├── repository.go                 # контракты
-│   │   └── postgres
-│   │       ├── team.go                       # TeamRepository
-│   │       ├── user.go                       # UserRepository
-│   │       ├── stats.go                      # StatsRepository
-│   │       └── pullrequest.go                # PullRequestRepository
+│   ├── repository                              # работа с репозиториями
+│   │   ├── repository.go                       # контракты
+│   │   ├── postgres
+│   │   │   ├── team.go                         # TeamRepository
+│   │   │   ├── user.go                         # UserRepository
+│   │   │   ├── stats.go                        # StatsRepository
+│   │   │   └── pullrequest.go                  # PullRequestRepository
+│   │   └── mocks
+│   │       ├── mock_team_repository.go         # Mock-TeamRepository
+│   │       ├── mock_user_repository.go         # Mock-UserRepository
+│   │       ├── mock_stats_repository.go        # Mock-StatsRepository
+│   │       └── mock_pullrequest_repository.go  # Mock-PullRequestRepository
 │   │
-│   ├── service                        # бизнес-логика
-│   │   ├── team.go                    # CreateTeam, GetTeamByName, DeactivateUsersAndReassignPRs
-│   │   ├── user.go                    # SetFlagIsActive, GetActiveUsersByTeam
-│   │   ├── stats.go                   # GetStats
-│   │   └── pull.go                    # CreatePullRequest, MergePullRequest, GetPullRequestsByReviewer, ReassignToPullRequest
+│   ├── service                                 # бизнес-логика
+│   │   ├── team.go                             # CreateTeam, GetTeamByName, DeactivateUsersAndReassignPRs
+│   │   ├── user.go                             # SetFlagIsActive, GetActiveUsersByTeam
+│   │   ├── stats.go                            # GetStats
+│   │   └── pull.go                        # CreatePullRequest, MergePullRequest, GetPullRequestsByReviewer, ReassignToPullRequest
 │   │
-│   └── web                            # HTTP-слой
-│       ├── codes.go                   # конвертация доменных ошибок в JSON-ответы
-│       ├── middleware.go              # логгирование
-│       ├── router.go                  # регистрация всех маршрутов
-│       ├── routers-pull-requests.go   # хендлеры для пулл реквестов
-│       ├── router-teams.go            # хендлеры для команд
-│       ├── router-users.go            # хендлеры для пользователей
-│       ├── router-stats.go            # хендлеры для статистики
+│   └── web                                     # HTTP-слой
+│       ├── codes.go                            # конвертация доменных ошибок в JSON-ответы
+│       ├── middleware.go                       # логгирование
+│       ├── router.go                           # регистрация всех маршрутов
+│       ├── routers-pull-requests.go            # хендлеры для пулл реквестов
+│       ├── router-teams.go                     # хендлеры для команд
+│       ├── router-users.go                     # хендлеры для пользователей
+│       ├── router-stats.go                     # хендлеры для статистики
 │       └── omodels
-│           └── api.gen.go             # сгенерированные OpenAPI-модели
+│           └── api.gen.go                      # сгенерированные OpenAPI-модели
+│
+├── tests                                       # интеграционные тесты
+│   ├── handlers_pullrequest_test.go
+│   ├── handlers_stats_test.go
+│   ├── handlers_team_test.go
+│   └── handlers_user_test.go
 │
 ├── pkg
 │   └── postgres
-│       └── postgres.go                # инициализация подключения к Postgres
+│       └── postgres.go                         # инициализация подключения к Postgres
 │
-├── migrations                         # миграции
+├── migrations                                  # миграции
 │   ├── 000001_teams.up.sql
 │   ├── 000001_teams.down.sql
 │   ├── 000002_users.up.sql
@@ -152,9 +167,9 @@ make lint         # Запуск golangci-lint
 │   └── 000003_pull_requests.down.sql
 │
 ├── api
-│   └── openapi.yml                  # спецификация OpenAPI
-├── .golangci.yml                    # конфигурация линтера
-├── k6.js                            # load-tests
+│   └── openapi.yml                             # спецификация OpenAPI
+├── .golangci.yml                               # конфигурация линтера
+├── k6.js                                       # load-tests
 ├── Dockerfile
 ├── docker-compose.yml
 ├── Makefile
@@ -266,4 +281,33 @@ SLI по успешности (99.9% успешных запросов) такж
 ТЗ требует, чтобы операция merge была идемпотентной.
 Принято решение: если PR уже в статусе MERGED, повторный запрос /pullRequest/merge возвращает 200 с актуальным состоянием PR без ошибок, обновление status и merged_at выполняется только если PR был OPEN. Это важно для сценариев с повторной отправкой запросов клиентом или ретраями.
 
+## Дополнительные задания
 
+Все дополнительные задания из ТЗ были проработаны и реализованы
+
+### Эндпоинт статистики — GET /stats
+
+Реализован сбор ключевых метрик: количество команд, количество пользователей, число активных пользователей, общее число PR, количество открытых PR и топ ревьюверов по числу назначений.
+
+### Нагрузочное тестирование (k6)
+
+Проведено полноценное нагрузочное тестирование с использованием k6.
+Сценарий включает: массовое создание команд и пользователей, создание PR, merge PR, выборку ревью.
+
+### Метод массовой деактивации пользователей — POST /team/deactivate
+
+Эндпоинт деактивирует указанных пользователей команды и автоматически переназначает их открытые PR.
+Реализовано: выбор всех затронутых PR, определение ревьюверов для замены, подбор новых активных пользователей, весь процесс — в одной транзакции.
+
+### Интеграционные тесты
+
+Весь основной функционал покрыт интеграционными тестами, включающими реальные сценарии работы сервиса
+
+### Конфигурация линтера — .golangci.yml
+
+Настроена строгая, но совместимая с v1 конфигурация golangci-lint. Конфигурация протестирована на текущей версии линтера.
+
+## Вывод
+
+В ходе выполнения тестового задания был реализован полноценный микросервис для автоматического назначения ревьюверов на Pull Request’ы. 
+Итоговая версия сервиса демонстрирует: стабильную работу, предсказуемое поведение под нагрузкой, высокую производительность, а также чистую архитектуру.
