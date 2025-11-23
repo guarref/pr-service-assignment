@@ -29,5 +29,8 @@ docker-down:
 load-tests:
 	k6 run ./k6.js
 
+integration-tests:
+	go run -v ./tests
+
 lint: 
 	golangci-lint run
