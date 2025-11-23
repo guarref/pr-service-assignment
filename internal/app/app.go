@@ -49,7 +49,7 @@ func New(_ context.Context, cfg *config.Config) (*App, error) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
-	
+
 	e.Use(middleware.Recover())
 	e.Use(web.AccessLogMiddleware)
 

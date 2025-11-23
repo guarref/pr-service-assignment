@@ -6,9 +6,9 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/repository"
-	"github.com/guarref/pr-service-assignment/internal/errs"
 )
 
 type PullRequestService struct {
@@ -21,7 +21,7 @@ func NewPullRequestService(prRepo repository.PullRequestRepository, userRepo rep
 }
 
 // func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
-	
+
 // 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
 // 		return nil, errs.ErrBadRequest
 // 	}
@@ -48,7 +48,7 @@ func NewPullRequestService(prRepo repository.PullRequestRepository, userRepo rep
 // }
 
 func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models.PullRequest) (*models.PullRequest, error) {
-	
+
 	if pr == nil || pr.PullRequestID == "" || pr.PullRequestName == "" || pr.AuthorID == "" {
 		return nil, errs.ErrBadRequest
 	}
@@ -80,7 +80,7 @@ func (prs *PullRequestService) CreatePullRequest(ctx context.Context, pr *models
 }
 
 func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string) (*models.PullRequest, error) {
-	
+
 	if prID == "" {
 		return nil, errs.ErrBadRequest
 	}
@@ -94,7 +94,7 @@ func (prs *PullRequestService) MergePullRequest(ctx context.Context, prID string
 }
 
 func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*models.PullRequest, string, error) {
-	
+
 	if prID == "" || oldUserID == "" {
 		return nil, "", errs.ErrBadRequest
 	}
@@ -108,7 +108,7 @@ func (prs *PullRequestService) ReassignToPullRequest(ctx context.Context, prID s
 }
 
 func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, userID string) ([]*models.PullRequestShort, error) {
-	
+
 	if userID == "" {
 		return nil, errs.ErrBadRequest
 	}
@@ -122,7 +122,7 @@ func (prs *PullRequestService) GetPullRequestsByReviewer(ctx context.Context, us
 }
 
 func randomUserSelection(activeUsers []*models.User, num int) []string {
-	
+
 	if len(activeUsers) == 0 {
 		return []string{}
 	}

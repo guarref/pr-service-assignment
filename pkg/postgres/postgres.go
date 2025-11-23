@@ -13,7 +13,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-
 type PDB struct {
 	DB *sqlx.DB
 }

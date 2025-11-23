@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/errs"
+	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/jmoiron/sqlx"
 )
 

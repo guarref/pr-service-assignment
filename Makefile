@@ -22,10 +22,6 @@ migrate-new:
 migrate:
 	$(MIGRATE) up
 
-# откатить последнюю миграцию
-migrate-down: 
-	$(MIGRATE) down 1
-
 # откатить все миграции
 migrate-down-all:
 	$(MIGRATE) down

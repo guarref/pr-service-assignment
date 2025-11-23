@@ -3,7 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 
@@ -27,7 +29,11 @@ func (prr *PullRequestRepository) CreatePullRequest(ctx context.Context, pr *mod
 	if err != nil {
 		return nil, fmt.Errorf("beginning transaction create_pull_request: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Printf("rollback error: %v", err)
+		}
+	}()
 
 	creationPullRequestQuery := `INSERT INTO pull_requests (pull_request_id, pull_request_name, author_id, status, created_at, merged_at)
 		VALUES ($1, $2, $3, $4, NOW(), NULL)
@@ -78,7 +84,11 @@ func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID
 	if err != nil {
 		return nil, fmt.Errorf("error beginning transaction merge_pull_request: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Printf("rollback error: %v", err)
+		}
+	}()
 
 	updateQuery := `UPDATE pull_requests
 		SET status = $1,
@@ -99,11 +109,11 @@ func (prr *PullRequestRepository) MergePullRequestByID(ctx context.Context, prID
 		WHERE pull_request_id = $1
 		ORDER BY assigned_at`
 
-	var rev_users []string
-	if err := tx.SelectContext(ctx, &rev_users, reviewersQuery, prID); err != nil {
+	var revUsers []string
+	if err := tx.SelectContext(ctx, &revUsers, reviewersQuery, prID); err != nil {
 		return nil, fmt.Errorf("error getting pull request reviewers: %w", err)
 	}
-	pr.AssignedReviewers = rev_users
+	pr.AssignedReviewers = revUsers
 
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("error committing transaction merge_pull_request: %w", err)
@@ -118,7 +128,11 @@ func (prr *PullRequestRepository) ReassignToPullRequest(ctx context.Context, prI
 	if err != nil {
 		return nil, "", fmt.Errorf("error beginning transaction reassign_pull_request: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Printf("rollback error: %v", err)
+		}
+	}()
 
 	prQuery := `SELECT pull_request_id, pull_request_name, author_id, status, created_at, merged_at
 		FROM pull_requests

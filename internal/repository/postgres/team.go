@@ -3,7 +3,9 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 
 	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/models"
@@ -27,7 +29,11 @@ func (tr *TeamRepository) CreateTeam(ctx context.Context, team *models.Team) err
 	if err != nil {
 		return fmt.Errorf("error begining transaction team: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Printf("rollback error: %v", err)
+		}
+	}()
 
 	var isExists bool
 	checkTeamQuery := `SELECT EXISTS(SELECT 1 FROM teams WHERE team_name = $1)`
@@ -95,13 +101,17 @@ func (tr *TeamRepository) GetTeamByName(ctx context.Context, teamName string) (*
 	return &team, nil
 }
 
-func (r *TeamRepository) DeactivateUsersAndReassignPRs(ctx context.Context, teamName string, userIDs []string) ([]string, error) {
+func (tr *TeamRepository) DeactivateUsersAndReassignPRs(ctx context.Context, teamName string, userIDs []string) ([]string, error) {
 
-	tx, err := r.db.BeginTxx(ctx, nil)
+	tx, err := tr.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error begining transaction team: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Printf("rollback error: %v", err)
+		}
+	}()
 
 	var isExists bool
 	checkTeamQuery := `SELECT EXISTS(SELECT 1 FROM teams WHERE team_name = $1)`

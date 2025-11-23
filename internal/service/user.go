@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/repository"
-	"github.com/guarref/pr-service-assignment/internal/errs"
 )
 
 type UserService struct {
