@@ -7,16 +7,16 @@ Test task for internship(PR Reviewer Assignment Service)
 ## Запуск приложения
 Для запуска и поднятия приложения в терминале выполните команду: 
 ```bash
-docker-compose up
+docker compose up --build -d
 ```
 После приложение запустится и сервис будет доступен на: http://localhost:8080. База данных поднимется автоматически, миграции применятся при запуске контейнера приложения.
 Для остановки: 
 ```bash
-docker-compose down
+docker compose down
 ```
 Для полной очистки:
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 Переменные окружения:
 - `PORT` - порт HTTP (по умолчанию: :8080)
@@ -44,6 +44,16 @@ make migrate        # Ручное применение миграций
 
 ```bash
 make migrate-down-all        # Ручной откат всех миграций
+```
+
+### Запуск и остановка приложения
+
+```bash
+make docker-up              # docker compose up --build -d
+```
+
+```bash
+make docker-down            # docker compose down
 ```
 
 ### Локальный запуск приложения
