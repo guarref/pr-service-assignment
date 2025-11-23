@@ -3,6 +3,7 @@ package web
 import (
 	"net/http"
 
+	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/service"
 	"github.com/guarref/pr-service-assignment/internal/web/omodels"
@@ -23,8 +24,7 @@ func (h *TeamHandler) PostTeamAdd(ctx echo.Context) error {
 	var body omodels.PostTeamAddJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
-		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
-		return ctx.JSON(http.StatusBadRequest, resp)
+		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
 	}
 
 	team := models.Team{

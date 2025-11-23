@@ -3,6 +3,7 @@ package web
 import (
 	"net/http"
 
+	"github.com/guarref/pr-service-assignment/internal/errs"
 	"github.com/guarref/pr-service-assignment/internal/models"
 	"github.com/guarref/pr-service-assignment/internal/service"
 	"github.com/guarref/pr-service-assignment/internal/web/omodels"
@@ -23,8 +24,7 @@ func (h *PullRequestHandler) PostPullRequestCreate(ctx echo.Context) error {
 	var body omodels.PostPullRequestCreateJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
-		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
-		return ctx.JSON(http.StatusBadRequest, resp)
+		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
 	}
 
 	pr := models.PullRequest{
@@ -51,8 +51,7 @@ func (h *PullRequestHandler) PostPullRequestMerge(ctx echo.Context) error {
 	var body omodels.PostPullRequestMergeJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
-		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
-		return ctx.JSON(http.StatusBadRequest, resp)
+		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
 	}
 
 	pr, err := h.service.MergePullRequest(ctx.Request().Context(), body.PullRequestId)
@@ -73,8 +72,7 @@ func (h *PullRequestHandler) PostPullRequestReassign(ctx echo.Context) error {
 	var body omodels.PostPullRequestReassignJSONRequestBody
 
 	if err := ctx.Bind(&body); err != nil {
-		resp := NewErrorResponse(omodels.NOTFOUND, "invalid request body")
-		return ctx.JSON(http.StatusBadRequest, resp)
+		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
 	}
 
 	pr, replacedBy, err := h.service.ReassignToPullRequest(ctx.Request().Context(), body.PullRequestId, body.OldUserId)
