@@ -8,6 +8,7 @@ tags:
   - name: Users
   - name: PullRequests
   - name: Health
+  - name: Stats
 
 components:
   parameters:
@@ -120,6 +121,34 @@ components:
         status:
           type: string
           enum: [OPEN, MERGED]
+    Stats:
+      type: object
+      required: [total_teams, total_users, active_users, total_pull_requests, open_pull_requests, top_reviewers]
+      properties:
+        total_teams:
+          type: integer
+        total_users:
+          type: integer
+        active_users:
+          type: integer
+        total_pull_requests:
+          type: integer
+        open_pull_requests:
+          type: integer
+        top_reviewers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopReviewer'
+    TopReviewer:
+      type: object
+      required: [user_id, username, review_count]
+      properties:
+        user_id:
+          type: string
+        username:
+          type: string
+        review_count:
+          type: integer
 
 paths:
   /team/add:
@@ -419,3 +448,37 @@ paths:
                     pull_request_name: Add search
                     author_id: u1
                     status: OPEN
+
+  /stats:
+    get:
+      tags: [Stats]
+      summary: Получить суммарную статистику сервиса
+      parameters:
+        - name: top
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 3
+          description: Максимальное количество топ-ревьюверов(10 по умолчанию)
+      responses:
+        '200':
+          description: Статистика по командам, пользователям, активным пользователям, PR'ам, топ-пользователям по назначениям на PR'ы
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+              example:
+                total_teams: 3
+                total_users: 10
+                active_users: 5
+                total_pull_requests: 10
+                open_pull_requests: 7
+                top_reviewers:
+                  - user_id: u1
+                    username: Ivan
+                    review_count: 4
+                  - user_id: u2
+                    username: Vasiliy
+                    review_count: 3

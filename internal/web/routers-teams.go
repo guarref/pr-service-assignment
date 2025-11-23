@@ -64,5 +64,6 @@ func (h *TeamHandler) GetTeamGet(ctx echo.Context, params omodels.GetTeamGetPara
 	}
 
 	respTeam := toOAPITeam(team)
+
 	return ctx.JSON(http.StatusOK, respTeam)
 }

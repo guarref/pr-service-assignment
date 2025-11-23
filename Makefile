@@ -5,8 +5,8 @@ DB_DSN := "postgres://postgres:PostgresPass@localhost:5432/prservice?sslmode=dis
 MIGRATE := migrate -path ./migrations -database $(DB_DSN)
 
 OPENAPI_FILE=api/openapi.yml
-OPENAPI_GEN_OUTPUT=internal/web/odomains/api.gen.go
-OPENAPI_GEN_PACKAGE=odomains
+OPENAPI_GEN_OUTPUT=internal/web/omodels/api.gen.go
+OPENAPI_GEN_PACKAGE=omodels
 
 .PHONY: help migrate-new migrate migrate-down migrate-force generate-openapi run build docker-up docker-down
 

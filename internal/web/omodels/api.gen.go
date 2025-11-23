@@ -71,6 +71,16 @@ type PullRequestShort struct {
 // PullRequestShortStatus defines model for PullRequestShort.Status.
 type PullRequestShortStatus string
 
+// Stats defines model for Stats.
+type Stats struct {
+	ActiveUsers       int           `json:"active_users"`
+	OpenPullRequests  int           `json:"open_pull_requests"`
+	TopReviewers      []TopReviewer `json:"top_reviewers"`
+	TotalPullRequests int           `json:"total_pull_requests"`
+	TotalTeams        int           `json:"total_teams"`
+	TotalUsers        int           `json:"total_users"`
+}
+
 // Team defines model for Team.
 type Team struct {
 	Members  []TeamMember `json:"members"`
@@ -82,6 +92,13 @@ type TeamMember struct {
 	IsActive bool   `json:"is_active"`
 	UserId   string `json:"user_id"`
 	Username string `json:"username"`
+}
+
+// TopReviewer defines model for TopReviewer.
+type TopReviewer struct {
+	ReviewCount int    `json:"review_count"`
+	UserId      string `json:"user_id"`
+	Username    string `json:"username"`
 }
 
 // User defines model for User.
@@ -114,6 +131,12 @@ type PostPullRequestMergeJSONBody struct {
 type PostPullRequestReassignJSONBody struct {
 	OldUserId     string `json:"old_user_id"`
 	PullRequestId string `json:"pull_request_id"`
+}
+
+// GetStatsParams defines parameters for GetStats.
+type GetStatsParams struct {
+	// Top Максимальное количество топ-ревьюверов(10 по умолчанию)
+	Top *int `form:"top,omitempty" json:"top,omitempty"`
 }
 
 // GetTeamGetParams defines parameters for GetTeamGet.
@@ -160,6 +183,9 @@ type ServerInterface interface {
 	// Переназначить конкретного ревьювера на другого из его команды
 	// (POST /pullRequest/reassign)
 	PostPullRequestReassign(ctx echo.Context) error
+	// Получить суммарную статистику сервиса
+	// (GET /stats)
+	GetStats(ctx echo.Context, params GetStatsParams) error
 	// Создать команду с участниками (создаёт/обновляет пользователей)
 	// (POST /team/add)
 	PostTeamAdd(ctx echo.Context) error
@@ -203,6 +229,24 @@ func (w *ServerInterfaceWrapper) PostPullRequestReassign(ctx echo.Context) error
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostPullRequestReassign(ctx)
+	return err
+}
+
+// GetStats converts echo context to params.
+func (w *ServerInterfaceWrapper) GetStats(ctx echo.Context) error {
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetStatsParams
+	// ------------- Optional query parameter "top" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "top", ctx.QueryParams(), &params.Top)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter top: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetStats(ctx, params)
 	return err
 }
 
@@ -291,6 +335,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/pullRequest/create", wrapper.PostPullRequestCreate)
 	router.POST(baseURL+"/pullRequest/merge", wrapper.PostPullRequestMerge)
 	router.POST(baseURL+"/pullRequest/reassign", wrapper.PostPullRequestReassign)
+	router.GET(baseURL+"/stats", wrapper.GetStats)
 	router.POST(baseURL+"/team/add", wrapper.PostTeamAdd)
 	router.GET(baseURL+"/team/get", wrapper.GetTeamGet)
 	router.GET(baseURL+"/users/getReview", wrapper.GetUsersGetReview)

@@ -7,16 +7,18 @@ import (
 )
 
 type Router struct {
-	teamHandler *TeamHandler
-	userHandler *UserHandler
-	prHandler   *PullRequestHandler
+	teamHandler  *TeamHandler
+	userHandler  *UserHandler
+	prHandler    *PullRequestHandler
+	statsHandler *StatsHandler
 }
 
-func NewRouter(teamSvc *service.TeamService, userSvc *service.UserService, prSvc *service.PullRequestService) *Router {
+func NewRouter(teamSvc *service.TeamService, userSvc *service.UserService, prSvc *service.PullRequestService, statsSvc *service.StatsService) *Router {
 	return &Router{
-		teamHandler: NewTeamHandler(teamSvc),
-		userHandler: NewUserHandler(userSvc),
-		prHandler:   NewPullRequestHandler(prSvc),
+		teamHandler:  NewTeamHandler(teamSvc),
+		userHandler:  NewUserHandler(userSvc),
+		prHandler:    NewPullRequestHandler(prSvc),
+		statsHandler: NewStatsHandler(statsSvc),
 	}
 }
 
@@ -40,16 +42,20 @@ func (r *Router) GetTeamGet(ctx echo.Context, params omodels.GetTeamGetParams) e
 	return r.teamHandler.GetTeamGet(ctx, params)
 }
 
-func (s *Router) GetUsersGetReview(ctx echo.Context, params omodels.GetUsersGetReviewParams) error {
-	return s.prHandler.GetUsersGetReview(ctx, params)
+func (r *Router) GetUsersGetReview(ctx echo.Context, params omodels.GetUsersGetReviewParams) error {
+	return r.prHandler.GetUsersGetReview(ctx, params)
 }
 
-func (s *Router) PostUsersSetIsActive(ctx echo.Context) error {
-	return s.userHandler.PostUsersSetIsActive(ctx)
+func (r *Router) PostUsersSetIsActive(ctx echo.Context) error {
+	return r.userHandler.PostUsersSetIsActive(ctx)
 }
 
-func RegisterRoutes(e *echo.Echo, teamSvc *service.TeamService, userSvc *service.UserService, prSvc *service.PullRequestService) {
+func (s *Router) GetStats(ctx echo.Context, params omodels.GetStatsParams) error {
+	return s.statsHandler.GetStats(ctx, params)
+}
 
-	server := NewRouter(teamSvc, userSvc, prSvc)
+func RegisterRoutes(e *echo.Echo, teamSvc *service.TeamService, userSvc *service.UserService, prSvc *service.PullRequestService, statsSvc *service.StatsService) {
+
+	server := NewRouter(teamSvc, userSvc, prSvc, statsSvc)
 	omodels.RegisterHandlers(e, server)
 }

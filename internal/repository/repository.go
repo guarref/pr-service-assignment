@@ -23,3 +23,7 @@ type PullRequestRepository interface {
 	ReassignToPullRequest(ctx context.Context, prID string, oldUserID string) (*models.PullRequest, string, error)
 	GetPullRequestByReviewerID(ctx context.Context, userID string) ([]*models.PullRequestShort, error)
 }
+
+type StatsRepository interface {
+	GetStats(ctx context.Context, top int) (*models.Stats, error)
+}

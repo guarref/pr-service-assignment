@@ -39,10 +39,12 @@ func New(ctx context.Context, cfg *config.Config) (*App, error) {
 	teamRepo := postgres.NewTeamRepository(db.DB)
 	userRepo := postgres.NewUserRepository(db.DB)
 	prRepo := postgres.NewPullRequestRepository(db.DB, userRepo)
+	statsRepo := postgres.NewStatsRepository(db.DB)
 
 	teamSvc := service.NewTeamService(teamRepo)
 	userSvc := service.NewUserService(userRepo)
 	prSvc := service.NewPullRequestService(prRepo, userRepo)
+	statsSvc := service.NewStatsService(statsRepo)
 
 	e := echo.New()
 	e.HideBanner = true
@@ -51,7 +53,7 @@ func New(ctx context.Context, cfg *config.Config) (*App, error) {
 	e.Use(middleware.Recover())
 	e.Use(web.AccessLogMiddleware)
 
-	web.RegisterRoutes(e, teamSvc, userSvc, prSvc)
+	web.RegisterRoutes(e, teamSvc, userSvc, prSvc, statsSvc)
 
 	return &App{cfg: cfg, db: db, echo: e}, nil
 }
