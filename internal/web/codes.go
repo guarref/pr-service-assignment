@@ -50,7 +50,10 @@ func mapErrorToHTTPResponse(c echo.Context, err error) error {
 
 		case errs.ErrBadRequest,
 			errs.ErrInvalidJSON:
-			code = omodels.NOTFOUND // вместо BAD REQUEST печаетаем NOT FOUND
+			code = omodels.BADREQUEST
+
+		default:
+			code = omodels.ErrorResponseErrorCode(respErr.Code)
 		}
 
 		resp := NewErrorResponse(code, respErr.Message)

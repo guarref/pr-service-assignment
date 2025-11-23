@@ -22,8 +22,8 @@ func (h *StatsHandler) GetStats(ctx echo.Context, params omodels.GetStatsParams)
 	var top *int
 
 	if params.Top != nil {
-		v := int(*params.Top)
-		top = &v
+		val := int(*params.Top)
+		top = &val
 	}
 
 	stats, err := h.service.GetStats(ctx.Request().Context(), top)

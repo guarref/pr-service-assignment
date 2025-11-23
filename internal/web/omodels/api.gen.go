@@ -14,6 +14,7 @@ import (
 
 // Defines values for ErrorResponseErrorCode.
 const (
+	BADREQUEST  ErrorResponseErrorCode = "BAD_REQUEST"
 	NOCANDIDATE ErrorResponseErrorCode = "NO_CANDIDATE"
 	NOTASSIGNED ErrorResponseErrorCode = "NOT_ASSIGNED"
 	NOTFOUND    ErrorResponseErrorCode = "NOT_FOUND"
