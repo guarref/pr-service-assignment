@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS users (
     user_id VARCHAR(120) PRIMARY KEY,
     username VARCHAR(120) NOT NULL,
     team_name VARCHAR(120) NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT false,
+    is_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     

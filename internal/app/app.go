@@ -23,7 +23,7 @@ type App struct {
 	echo *echo.Echo
 }
 
-func New(ctx context.Context, cfg *config.Config) (*App, error) {
+func New(_ context.Context, cfg *config.Config) (*App, error) {
 
 	db, err := pg.NewPDB(cfg.DSN())
 	if err != nil {
