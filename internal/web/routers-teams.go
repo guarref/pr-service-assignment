@@ -67,3 +67,29 @@ func (h *TeamHandler) GetTeamGet(ctx echo.Context, params omodels.GetTeamGetPara
 
 	return ctx.JSON(http.StatusOK, respTeam)
 }
+
+// team/deactivate post
+func (h *TeamHandler) PostTeamDeactivate(ctx echo.Context) error {
+
+	var body omodels.PostTeamDeactivateJSONRequestBody
+
+	if err := ctx.Bind(&body); err != nil {
+		return mapErrorToHTTPResponse(ctx, errs.ErrBadRequest)
+	}
+
+	var userIDs []string
+	if body.UserIds != nil {
+		userIDs = *body.UserIds
+	}
+
+	deactivated, err := h.service.DeactivateUsersAndReassignPRs(ctx.Request().Context(), body.TeamName, userIDs)
+	if err != nil {
+		return mapErrorToHTTPResponse(ctx, err)
+	}
+
+	resp := omodels.DeactivateUsersResponse{
+		DeactivatedUsers: deactivated,
+	}
+
+	return ctx.JSON(http.StatusOK, resp)
+}

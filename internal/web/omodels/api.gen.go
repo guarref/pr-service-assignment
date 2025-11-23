@@ -35,6 +35,12 @@ const (
 	PullRequestShortStatusOPEN   PullRequestShortStatus = "OPEN"
 )
 
+// DeactivateUsersResponse defines model for DeactivateUsersResponse.
+type DeactivateUsersResponse struct {
+	// DeactivatedUsers Список деактивированных user_id
+	DeactivatedUsers []string `json:"deactivated_users"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error struct {
@@ -140,6 +146,15 @@ type GetStatsParams struct {
 	Top *int `form:"top,omitempty" json:"top,omitempty"`
 }
 
+// PostTeamDeactivateJSONBody defines parameters for PostTeamDeactivate.
+type PostTeamDeactivateJSONBody struct {
+	// TeamName Имя команды для деактивации пользователей
+	TeamName string `json:"team_name"`
+
+	// UserIds Список конкретных user_id для деактивации(если пустой, деактивируются все)
+	UserIds *[]string `json:"user_ids,omitempty"`
+}
+
 // GetTeamGetParams defines parameters for GetTeamGet.
 type GetTeamGetParams struct {
 	// TeamName Уникальное имя команды
@@ -170,6 +185,9 @@ type PostPullRequestReassignJSONRequestBody PostPullRequestReassignJSONBody
 // PostTeamAddJSONRequestBody defines body for PostTeamAdd for application/json ContentType.
 type PostTeamAddJSONRequestBody = Team
 
+// PostTeamDeactivateJSONRequestBody defines body for PostTeamDeactivate for application/json ContentType.
+type PostTeamDeactivateJSONRequestBody PostTeamDeactivateJSONBody
+
 // PostUsersSetIsActiveJSONRequestBody defines body for PostUsersSetIsActive for application/json ContentType.
 type PostUsersSetIsActiveJSONRequestBody PostUsersSetIsActiveJSONBody
 
@@ -190,6 +208,9 @@ type ServerInterface interface {
 	// Создать команду с участниками (создаёт/обновляет пользователей)
 	// (POST /team/add)
 	PostTeamAdd(ctx echo.Context) error
+	// Массовая деактивация пользователей команды с переназначением
+	// (POST /team/deactivate)
+	PostTeamDeactivate(ctx echo.Context) error
 	// Получить команду с участниками
 	// (GET /team/get)
 	GetTeamGet(ctx echo.Context, params GetTeamGetParams) error
@@ -257,6 +278,15 @@ func (w *ServerInterfaceWrapper) PostTeamAdd(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.PostTeamAdd(ctx)
+	return err
+}
+
+// PostTeamDeactivate converts echo context to params.
+func (w *ServerInterfaceWrapper) PostTeamDeactivate(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.PostTeamDeactivate(ctx)
 	return err
 }
 
@@ -338,6 +368,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/pullRequest/reassign", wrapper.PostPullRequestReassign)
 	router.GET(baseURL+"/stats", wrapper.GetStats)
 	router.POST(baseURL+"/team/add", wrapper.PostTeamAdd)
+	router.POST(baseURL+"/team/deactivate", wrapper.PostTeamDeactivate)
 	router.GET(baseURL+"/team/get", wrapper.GetTeamGet)
 	router.GET(baseURL+"/users/getReview", wrapper.GetUsersGetReview)
 	router.POST(baseURL+"/users/setIsActive", wrapper.PostUsersSetIsActive)

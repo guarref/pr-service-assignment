@@ -48,6 +48,20 @@ func (ts *TeamService) GetTeamByName(ctx context.Context, teamName string) (*mod
 	return team, nil
 }
 
+func (ts *TeamService) DeactivateUsersAndReassignPRs(ctx context.Context, teamName string, userIDs []string) ([]string, error) {
+
+	if !IsValidTeamName(teamName) {
+		return nil, errs.ErrBadRequest
+	}
+
+	deactivated, err := ts.teamRepo.DeactivateUsersAndReassignPRs(ctx, teamName, userIDs)
+	if err != nil {
+		return nil, fmt.Errorf("error deactivating users for team %s: %w", teamName, err)
+	}
+
+	return deactivated, nil
+}
+
 func IsValidTeamName(name string) bool {
 
 	if name == "" {

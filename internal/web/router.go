@@ -50,8 +50,12 @@ func (r *Router) PostUsersSetIsActive(ctx echo.Context) error {
 	return r.userHandler.PostUsersSetIsActive(ctx)
 }
 
-func (s *Router) GetStats(ctx echo.Context, params omodels.GetStatsParams) error {
-	return s.statsHandler.GetStats(ctx, params)
+func (r *Router) GetStats(ctx echo.Context, params omodels.GetStatsParams) error {
+	return r.statsHandler.GetStats(ctx, params)
+}
+
+func (r *Router) PostTeamDeactivate(ctx echo.Context) error {
+	return r.teamHandler.PostTeamDeactivate(ctx)
 }
 
 func RegisterRoutes(e *echo.Echo, teamSvc *service.TeamService, userSvc *service.UserService, prSvc *service.PullRequestService, statsSvc *service.StatsService) {

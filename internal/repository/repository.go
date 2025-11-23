@@ -9,6 +9,7 @@ import (
 type TeamRepository interface {
 	CreateTeam(ctx context.Context, team *models.Team) error
 	GetTeamByName(ctx context.Context, name string) (*models.Team, error)
+	DeactivateUsersAndReassignPRs(ctx context.Context, teamName string, userIDs []string) ([]string, error)
 }
 
 type UserRepository interface {

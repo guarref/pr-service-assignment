@@ -71,6 +71,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TeamMember'
+    DeactivateUsersResponse:
+      type: object
+      required:
+        - deactivated_users
+      properties:
+        deactivated_users:
+          type: array
+          items:
+            type: string
+          description: Список деактивированных user_id
     User:
       type: object
       required: [ user_id, username, team_name, is_active ]
@@ -228,6 +238,45 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /team/deactivate:
+    post:
+      tags: [Teams]
+      summary: Массовая деактивация пользователей команды с переназначением
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [team_name]
+              properties:
+                team_name:
+                  type: string
+                  description: Имя команды для деактивации пользователей
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: Список конкретных user_id для деактивации(если пустой, деактивируются все)
+            example:
+              team_name: backend
+              user_ids: ["u1", "u2", "u3"]
+      responses:
+        '200':
+          description: Деактивация выполнена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeactivateUsersResponse'
+              example:
+                deactivated_users: ["u1", "u2", "u3"]
+        '404':
+          description: Команда не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /users/setIsActive:
     post:
