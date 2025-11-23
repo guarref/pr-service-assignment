@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockStatsRepository is a mock implementation of StatsRepository
 type MockStatsRepository struct {
 	mock.Mock
 }

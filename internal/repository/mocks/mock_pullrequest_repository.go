@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockPullRequestRepository is a mock implementation of PullRequestRepository
 type MockPullRequestRepository struct {
 	mock.Mock
 }

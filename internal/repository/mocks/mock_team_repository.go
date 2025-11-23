@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockTeamRepository is a mock implementation of TeamRepository
 type MockTeamRepository struct {
 	mock.Mock
 }

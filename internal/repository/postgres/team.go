@@ -124,7 +124,6 @@ func (tr *TeamRepository) DeactivateUsersAndReassignPRs(ctx context.Context, tea
 
 	var usersToDeactivate []string
 
-	// выбор конкретных пользователей для деактивации
 	if len(userIDs) > 0 {
 		deactivateQuery := `SELECT user_id 
 			FROM users 

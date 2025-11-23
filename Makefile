@@ -21,16 +21,16 @@ run:
 	go run cmd/app/main.go
 
 docker-up:
-	docker-compose up --build -d
+	docker compose up --build -d
 
 docker-down: 
-	docker-compose down
+	docker compose down
 
 load-tests:
-	k6 run ./k6.js
+	k6 run ./k6.
 
 integration-tests:
-	go run -v ./tests
+	go test -v ./tests
 
 lint: 
 	golangci-lint run
