@@ -1,4 +1,3 @@
-# переменные
 DB_DSN := "postgres://postgres:PostgresPass@db:5432/prservice?sslmode=disable"
 MIGRATE := migrate -path ./migrations -database $(DB_DSN)
 
